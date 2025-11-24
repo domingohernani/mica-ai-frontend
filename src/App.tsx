@@ -1,103 +1,206 @@
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "./components/ui/mode-toggle";
-import { useEffect, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
 import axios from "axios";
 import { Input } from "./components/ui/input";
+import { useReactMediaRecorder } from "react-media-recorder";
+import useError from "./hooks/useError";
 
-function App() {
-  const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
-  const [loading, setLoading] = useState(false);
+interface Question {
+  _id: string;
+  text: string;
+  signedUrl: string;
+}
+
+const VideoPreview = ({ stream }: { stream: MediaStream | null }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    const generateQuestion = async (): Promise<void | null> => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [stream]);
+  if (!stream) {
+    return null;
+  }
+  return <video ref={videoRef} width={500} height={500} autoPlay controls />;
+};
+
+function App() {
+  const [question, setQuestion] = useState<Question>();
+
+  // Condition states
+  const [ready, setReady] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const { error, setError } = useError();
+
+  const { status, startRecording, stopRecording, mediaBlobUrl, previewStream } =
+    useReactMediaRecorder({
+      video: {
+        width: 1280,
+        height: 720,
+        frameRate: 24,
+      },
+      audio: true,
+      blobPropertyBag: { type: "video/webm; codecs=vp8" },
+    });
+
+  const handleReadyBtn = async () => {
+    try {
+      await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      setReady(true);
+    } catch (err) {
+      console.error(err);
+      setError(err);
+    }
+  };
+
+  // Side effect runs if the stop button is clicked
+  const onAnswer = useEffectEvent(async () => {
+    // Return if the blob url is false
+    if (!mediaBlobUrl) return;
+
+    console.log("onAnswer was called");
+
+    // blob url -> blob -> actual file (mp4)
+    const fetchedMedia = await fetch(mediaBlobUrl);
+    const blob: Blob = await fetchedMedia.blob();
+    const blobMp4 = new File([blob], "video", { type: "video/mp4" });
+
+    const mediaData = new FormData();
+    mediaData.append("video", blobMp4);
+
+    try {
+      setLoading(true);
+      const { data } = await axios.patch(
+        `http://localhost:3000/api/interviews/692327f99b924533a2077848/questions/${question?._id}`,
+        mediaData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      // Convert to Question interface
+      const newQestion: Question = {
+        _id: data._id,
+        signedUrl:
+          "isDone" in data ? data.finalTtsSignedUrl : data.aiTtsSignedUrl,
+        text: "isDone" in data ? data.finalMessage : data.aiQuestion,
+      };
+      setQuestion(newQestion);
+    } catch (error) {
+      console.error(error);
+      setError(error);
+    } finally {
+      setLoading(false);
+    }
+  });
+
+  useEffect(() => {
+    if (status === "stopped") onAnswer();
+  }, [status]);
+
+  useEffect(() => {
+    // Fetch the current unanswered question
+    const fetchCurrentQuestion = async (): Promise<void | null> => {
+      console.log("hello");
+
       try {
         setLoading(true);
         const { data } = await axios.get(
-          "http://localhost:3000/api/interview/6918c0d857b8a755b90f9025/question"
+          "http://localhost:3000/api/interviews/692327f99b924533a2077848/questions"
         );
-
-        if (data.isDone) {
-          setQuestion(data.finalMessage);
-        } else {
-          setQuestion(data.aiQuestion);
-        }
+        // Convert to Question interface
+        const question: Question = {
+          _id: data._id,
+          signedUrl:
+            "isDone" in data ? data.finalTtsSignedUrl : data.aiTtsSignedUrl,
+          text: "isDone" in data ? data.finalMessage : data.aiQuestion,
+        };
+        setQuestion(question);
       } catch (error) {
         console.error(error);
+        setError(error);
       } finally {
+        setLoading(false);
         setLoading(false);
       }
     };
-    generateQuestion();
-  }, []);
-
-  // const handleResponse = async (e: FormEvent): Promise<void> => {
-  //   e.preventDefault();
-
-  //   try {
-  //     const currentConvoIndex =
-  //       conversation.length > 0 ? conversation.length - 1 : 0;
-
-  //     if (!conversation[currentConvoIndex]) return;
-  //     if (!questions[currentQIndex]) return;
-
-  //     const newConvo = conversation.map(
-  //       (interaction: Interaction, index: number) =>
-  //         currentConvoIndex === index
-  //           ? { ...interaction, answer: answer }
-  //           : interaction
-  //     );
-  //     setConversation(newConvo);
-  //     setCurrentQIndex((prev: number) => prev + 1);
-
-  //     const systemPrompt = `
-  //     You are Mica, an AI interviewer continuing a professional job interview.
-
-  //     1. Read the applicant’s current answer carefully.
-  //     2. Provide a short, friendly acknowledgment that shows you understood their response.
-  //     3. Include a brief comment that recognizes the applicant’s thought, experience, or perspective.
-  //     4. Then, smoothly ask the next interview question provided below.
-  //     5. Keep your tone professional, polite, and conversational—like a real interviewer continuing an ongoing discussion.
-  //     6. Do not restart the interview or use filler phrases like “Okay, let’s begin,” “Alright, let’s continue,” or “Let’s do this.” Simply respond naturally as part of the flow.
-  //     7. Keep it concise and relevant to their answer.
-
-  //     Current Question: ${conversation[currentConvoIndex].originalQuestion}
-  //     Candidate’s Answer: ${answer}
-  //     Next Question: ${questions[currentConvoIndex + 1]}
-  //     `;
-
-  //     setLoading(true);
-  //     const { data } = await axios.post("http://localhost:3000/api/llm", {
-  //       model: "gemma3:4b",
-  //       prompt: systemPrompt,
-  //       stream: false,
-  //     });
-
-  //     const interaction: Interaction = {
-  //       originalQuestion: questions[currentQIndex],
-  //       aiQuestion: data.response,
-  //       answer: "",
-  //     };
-  //     setConversation((prev) => [...prev, interaction]);
-  //   } catch (error) {
-  //     console.error(error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+    fetchCurrentQuestion();
+  }, [setError]);
 
   return (
     <section>
       <ModeToggle />
+
+      <p>{error}</p>
+
+      {ready ? (
+        <>
+          {loading ? (
+            <h1>Mica is preparing her notes...</h1>
+          ) : (
+            <section>
+              <section>
+                <audio controls autoPlay>
+                  <source src={question?.signedUrl} type="audio/mpeg" />
+                  <source src={question?.signedUrl} type="audio/ogg" />
+                  Your browser does not support the audio element.
+                </audio>
+
+                <p>{status}</p>
+                <h1>{question?.text}</h1>
+              </section>
+
+              <Button variant={"outline"} onClick={startRecording}>
+                Record
+              </Button>
+              <Button variant={"destructive"} onClick={stopRecording}>
+                Stop
+              </Button>
+
+              <h1>Url: {mediaBlobUrl}</h1>
+
+              <Button
+                variant={"outline"}
+                // onClick={() => handleDisplayBtn(mediaBlobUrl)}
+              >
+                Display Data
+              </Button>
+
+              {status === "recording" && (
+                <VideoPreview stream={previewStream} />
+              )}
+
+              {status === "stopped" && (
+                <video src={mediaBlobUrl} controls autoPlay loop></video>
+              )}
+            </section>
+          )}
+        </>
+      ) : (
+        <>
+          <h1>Are you ready?</h1>
+          <Button variant="outline" onClick={handleReadyBtn}>
+            Ready
+          </Button>
+        </>
+      )}
+
       {/* <div>
         <Input
           type="text"
           value={value}
           onChange={(e) => setValue(e.target.value)}
         />
-        <Button variant={"outline"} onClick={handleBtnClick}>
-          Send
-        </Button>
+       
       </div> */}
 
       {/* <section>
@@ -134,7 +237,14 @@ function App() {
         </Button>
       </form> */}
 
-      <section>{loading ? "Loading..." : question}</section>
+      {/* <section>{loading ? "Loading..." : interview?.aiQuestion}</section>
+
+      {interview?.aiTtsSignedUrl && ready && (
+        <audio controls autoPlay>
+          <source src={interview?.aiTtsSignedUrl} type="audio/mpeg" />
+          Your browser does not support the audio element.
+        </audio>
+      )} */}
     </section>
   );
 }
