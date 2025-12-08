@@ -1,10 +1,26 @@
-import App from "@/App";
+import CallbackPage from "@/features/auth/pages/callback-page";
+import LoginPage from "@/features/auth/pages/login-page";
+import SignupPage from "@/features/auth/pages/signup-page";
+import MainLayout from "@/layout/main-layout";
 import { createBrowserRouter } from "react-router-dom";
 
 const router = createBrowserRouter([
   {
+    path: "signup",
+    element: <SignupPage />,
+  },
+  {
+    path: "login",
+    element: <LoginPage />,
+  },
+  {
+    path: "callback",
+    element: <CallbackPage />,
+  },
+  {
     path: "/",
-    element: <App />,
+    element: <MainLayout />,
+    children: [],
   },
 ]);
 
