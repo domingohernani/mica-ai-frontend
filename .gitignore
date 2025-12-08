@@ -1,3 +1,9 @@
+# Environment files
+.env
+.env.*           # .env.local, .env.production, .env.development, etc.
+.local.env
+*.local          # sometimes people name envs like myapp.local
+
 # Logs
 logs
 *.log
