@@ -8,11 +8,18 @@
   font-style: normal;
 }
 
+@font-face {
+  font-family: "TikTok";
+  src: url("assets/fonts/tiktok/TikTokSans-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+}
+
 *,
 *::before,
 *::after {
   box-sizing: border-box;
-  font-family: "Outfit", sans-serif;
+  font-family: "TikTok", sans-serif;
 }
 
 @custom-variant dark (&:is(.dark *));
