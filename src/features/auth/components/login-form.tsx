@@ -74,7 +74,7 @@ const LoginForm = ({ className, ...props }: React.ComponentProps<"div">) => {
         <FieldGroup>
           <div className="flex flex-col items-center gap-2 text-center">
             <div className="flex flex-col items-center gap-2 font-medium">
-              <div className="flex size-8 items-center justify-center rounded-md">
+              <div className="flex items-center justify-center rounded-md size-8">
                 <GalleryVerticalEnd className="size-6" />
               </div>
             </div>

@@ -1,5 +1,5 @@
 import { useAuth0 } from "@auth0/auth0-react";
-import { useStore } from "@/stores/useStore";
+import { useStore } from "@/stores/use-store";
 import { useEffect, useEffectEvent } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { api } from "./utils/axios";

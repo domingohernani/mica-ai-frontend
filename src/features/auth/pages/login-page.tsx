@@ -45,7 +45,13 @@ const LoginPage = () => {
     if (isLoading) return; // wait until Auth0 finishes loading
 
     if (!isAuthenticated) {
-      loginWithRedirect(); // triggers the redirect login
+      loginWithRedirect({
+        authorizationParams: {
+          redirect_uri: import.meta.env["VITE_AUTH0_REDIRECT_URI"],
+          audience: import.meta.env["VITE_AUTH0_AUDIENCE"],
+          scope: "openid profile email offline_access",
+        },
+      }); // triggers the redirect login
     }
   }, [isLoading, isAuthenticated, loginWithRedirect]);
 

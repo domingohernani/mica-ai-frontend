@@ -11,7 +11,7 @@ interface Question {
 }
 
 const InterviewPage = () => {
-  const { isAuthenticated, user, getAccessTokenSilently } = useAuth0();
+  const { isAuthenticated, getAccessTokenSilently } = useAuth0();
   const [token, setToken] = useState();
 
   useEffect(() => {
@@ -27,6 +27,7 @@ const InterviewPage = () => {
         const { data } = await axios.post("http://localhost:3000/api/auth", {
           token,
         });
+        console.log(data.token);
         setToken(data.token);
       } catch (e) {
         console.error(e);
@@ -78,9 +79,16 @@ const InterviewPage = () => {
 
       try {
         const { data } = await axios.post(
-          `http://localhost:3000/api/interviews/69303ebdf10e2cbfc53a4fa4/questions/${question?._id}/chunk`,
-          formData
+          `http://localhost:3000/api/interviews/69382f8257fd4bc9ffcfe529/questions/${question?._id}/chunk`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
+          }
         );
+
         const newQestion: Question = {
           _id: data._id,
           signedUrl:
@@ -130,7 +138,7 @@ const InterviewPage = () => {
         },
       });
       const { data } = await axios.get(
-        "http://localhost:3000/api/interviews/69303ebdf10e2cbfc53a4fa4/questions",
+        "http://localhost:3000/api/interviews/69382f8257fd4bc9ffcfe529/questions",
         {
           headers: {
             Authorization: `Bearer ${token}`,
