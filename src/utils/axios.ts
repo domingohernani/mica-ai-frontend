@@ -1,4 +1,4 @@
-import { useStore } from "@/stores/useStore";
+import { useStore } from "@/stores/use-store";
 import axios from "axios";
 import type { AxiosInstance } from "axios";
 

@@ -1,5 +1,7 @@
+import type { User } from "@/types/user.type";
+
 // TODO: use User type later instead of an object
 export interface UserStore {
-  user: object;
-  setUser: (data: object) => void;
+  user: User | null;
+  setUser: (data: User) => void;
 }
