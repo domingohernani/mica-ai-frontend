@@ -2,6 +2,7 @@ import App from "@/App";
 import CallbackPage from "@/features/auth/pages/callback-page";
 import LoginPage from "@/features/auth/pages/login-page";
 import SignupPage from "@/features/auth/pages/signup-page";
+import InterviewPage from "@/features/interview/pages/interview-page";
 import OnboardPage from "@/features/orgnanization/pages/onboard-page";
 import MainLayout from "@/layout/main-layout";
 import { createBrowserRouter } from "react-router-dom";
