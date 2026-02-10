@@ -79,7 +79,7 @@ const InterviewPage = () => {
 
       try {
         const { data } = await axios.post(
-          `http://localhost:3000/api/interviews/69382f8257fd4bc9ffcfe529/questions/${question?._id}/chunk`,
+          `http://localhost:3000/api/interviews/6989fcbfc80f4653dd8fb102/questions/${question?._id}/chunk`,
           formData,
           {
             headers: {
@@ -138,7 +138,7 @@ const InterviewPage = () => {
         },
       });
       const { data } = await axios.get(
-        "http://localhost:3000/api/interviews/69382f8257fd4bc9ffcfe529/questions",
+        "http://localhost:3000/api/interviews/6989fcbfc80f4653dd8fb102/questions",
         {
           headers: {
             Authorization: `Bearer ${token}`,
