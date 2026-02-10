@@ -245,8 +245,11 @@ const HiringCandidatesPage = () => {
       </div>
 
       {/* Table Container with horizontal scroll */}
-      <div className="overflow-x-auto border" style={{ minWidth: "800px" }}>
-        <div className="min-w-[800px]">
+      <div
+        className="overflow-x-auto border bg-card"
+        style={{ minWidth: "800px" }}
+      >
+        <div className="min-w-[800px] ">
           <Table>
             <TableHeader>
               <TableRow>
