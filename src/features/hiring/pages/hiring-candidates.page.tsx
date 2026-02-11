@@ -25,6 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Search, MoreVertical, Mail, Phone, FileText } from "lucide-react";
+import PageHeader from "@/components/layout/page-header";
 
 // Mock data - replace with your actual data fetching
 const mockCandidates = [
@@ -171,14 +172,14 @@ const HiringCandidatesPage = () => {
     });
 
   return (
-    <div className="space-y-5">
+    <>
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Candidates</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          A unified list of every applicant who has entered the system.
-        </p>
-      </div>
+      <section>
+        <PageHeader
+          title="Candidates"
+          subtitle="A unified list of every applicant who has entered the system."
+        />
+      </section>
 
       {/* Filters and Search */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -245,8 +246,11 @@ const HiringCandidatesPage = () => {
       </div>
 
       {/* Table Container with horizontal scroll */}
-      <div className="overflow-x-auto border" style={{ minWidth: "800px" }}>
-        <div className="min-w-[800px]">
+      <div
+        className="overflow-x-auto border bg-card"
+        style={{ minWidth: "800px" }}
+      >
+        <div className="min-w-[800px] ">
           <Table>
             <TableHeader>
               <TableRow>
@@ -366,7 +370,7 @@ const HiringCandidatesPage = () => {
           </Table>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

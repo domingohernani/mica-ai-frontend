@@ -16,6 +16,7 @@ import OnboardPage from "@/features/orgnanization/pages/onboard-page";
 
 // Others
 import { createBrowserRouter, Navigate } from "react-router-dom";
+import InterviewPage from "@/features/interview/pages/interview.page";
 
 const router = createBrowserRouter([
   {
@@ -38,15 +39,19 @@ const router = createBrowserRouter([
         element: <CallbackPage />,
       },
       {
+        path: "interview",
+        element: <InterviewPage />,
+      },
+      {
         path: "/",
         element: <MainLayout />,
         children: [
           {
             index: true,
-            element: <Navigate to="/hiring/candidates" replace />,
+            element: <Navigate to="/talent-acquisition/candidates" replace />,
           },
           {
-            path: "hiring",
+            path: "talent-acquisition",
             children: [
               {
                 path: "candidates",
