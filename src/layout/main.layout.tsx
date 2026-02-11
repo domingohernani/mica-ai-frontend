@@ -13,7 +13,7 @@ export default function MainLayout() {
       </div>
 
       {/* Main Content - scrollable */}
-      <div className="row-start-2 p-5 overflow-auto">
+      <div className="row-start-2 p-5 overflow-auto space-y-5">
         <Outlet />
       </div>
     </div>

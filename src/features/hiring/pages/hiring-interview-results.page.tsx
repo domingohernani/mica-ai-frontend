@@ -48,6 +48,7 @@ import {
   Search,
   ChevronRight,
 } from "lucide-react";
+import PageHeader from "@/components/layout/page-header";
 
 // Mock data structure
 interface Candidate {
@@ -441,14 +442,14 @@ const HiringInterviewResultsPage = () => {
   };
 
   return (
-    <div className="space-y-5">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Candidates</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Detailed interview breakdowns, scoring metrics, and behavioral
-          insights for each candidate.
-        </p>
-      </div>
+    <>
+      {/* Header */}
+      <section>
+        <PageHeader
+          title="Interview Results"
+          subtitle="Detailed interview breakdowns, scoring metrics, and behavioral insights for each candidate."
+        />
+      </section>
 
       {/* Search and Filter Section */}
       <Card>
@@ -893,7 +894,7 @@ const HiringInterviewResultsPage = () => {
           </Card>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
