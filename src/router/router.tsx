@@ -43,10 +43,10 @@ const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <Navigate to="/hiring/candidates" replace />,
+            element: <Navigate to="/talent-acquisition/candidates" replace />,
           },
           {
-            path: "hiring",
+            path: "talent-acquisition",
             children: [
               {
                 path: "candidates",

@@ -29,17 +29,17 @@ const SIDEBAR_ITEMS: NavGroup[] = [
     items: [
       {
         title: "Candidates",
-        href: "/hiring/candidates",
+        href: "/talent-acquisition/candidates",
         icon: <Users className="w-4 h-4" />,
       },
       {
         title: "Interview Results",
-        href: "/hiring/results",
+        href: "/talent-acquisition/results",
         icon: <FileText className="w-4 h-4" />,
       },
       {
         title: "Job Postings",
-        href: "/hiring/jobs",
+        href: "/talent-acquisition/jobs",
         icon: <Briefcase className="w-4 h-4" />,
       },
     ],
