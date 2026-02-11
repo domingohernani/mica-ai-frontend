@@ -549,9 +549,6 @@ const HiringInterviewResultsPage = () => {
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <Button variant="ghost" size="icon" className="w-8 h-8">
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
             <h1 className="text-3xl font-bold tracking-tight">
               {candidate.name}
             </h1>
