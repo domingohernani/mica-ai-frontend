@@ -46,8 +46,6 @@ const Sidebar = () => {
           ))}
         </div>
       </ScrollArea>
-
-      
     </div>
   );
 };
