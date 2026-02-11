@@ -16,6 +16,7 @@ import OnboardPage from "@/features/orgnanization/pages/onboard-page";
 
 // Others
 import { createBrowserRouter, Navigate } from "react-router-dom";
+import InterviewPage from "@/features/interview/pages/interview.page";
 
 const router = createBrowserRouter([
   {
@@ -36,6 +37,10 @@ const router = createBrowserRouter([
       {
         path: "callback",
         element: <CallbackPage />,
+      },
+      {
+        path: "interview",
+        element: <InterviewPage />,
       },
       {
         path: "/",
