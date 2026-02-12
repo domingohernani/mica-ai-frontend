@@ -4,5 +4,5 @@ export type User = {
   lastName: string;
   email: string;
   isVerified: boolean;
-  pictureUrl: string;
+  profileUrl: string;
 };

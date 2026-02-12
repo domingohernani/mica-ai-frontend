@@ -6,8 +6,11 @@ import Sidebar from "./sidebar.layout";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ModeToggle } from "@/components/ui/mode-toggle";
 import MicaAi from "@/assets/logos/mica-ai-logo";
+import { useStore } from "@/stores/use-store";
 
 const Header = () => {
+  const user = useStore((store) => store.user);
+
   return (
     <header className="flex items-center justify-between h-16 p-5 bg-card">
       <div className="flex items-center gap-4">
@@ -18,15 +21,17 @@ const Header = () => {
           <div className="pl-4 border-l">
             <div className="flex items-center gap-2 px-3 py-1 border rounded-md bg-card">
               <Avatar className="border-2 h-9 w-9 border-background">
-                <AvatarImage src="https://github.com/shadcn.png" />
-                <AvatarFallback>JD</AvatarFallback>
+                <AvatarImage src={user?.profileUrl || ""} />
+
+                <AvatarFallback>
+                  {user?.firstName && user?.lastName
+                    ? `${user?.firstName[0]?.toUpperCase()}${user.lastName[0]?.toUpperCase()}`
+                    : "U"}
+                </AvatarFallback>
               </Avatar>
               <div className="flex flex-col overflow-hidden">
                 <span className="text-sm font-medium truncate">
-                  Jane Recruiter
-                </span>
-                <span className="text-xs truncate text-muted-foreground">
-                  Admin
+                  {user?.firstName} {user?.lastName}
                 </span>
               </div>
             </div>
