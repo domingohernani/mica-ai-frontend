@@ -4,7 +4,7 @@ import type { User } from "@/types/user.type";
 import { api } from "@/utils/axios";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useEffect, useEffectEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { data, useNavigate } from "react-router-dom";
 import EmailSentIllustation from "../assets/illustrations/email-sent-illustration";
 import { FieldDescription } from "@/components/ui/field";
 import CelebrationIllustration from "@/assets/illustrations/celebration-illustration";
@@ -46,7 +46,7 @@ const CallbackPage = () => {
         // Checking user's organization
         if (userData.isVerified) {
           const { data: organizationData } = await api.get(
-            `organizations/user/${userData._id}`,
+            `organizations/user/${userData.id}`,
           );
           // If the user has no organization, navigate to onboarding
           if (!organizationData.length) {

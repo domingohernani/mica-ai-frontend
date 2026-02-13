@@ -20,7 +20,7 @@ import PageHeader from "@/components/layout/page-header";
 import MicaAi from "@/assets/logos/mica-ai-logo";
 
 interface Question {
-  _id: string;
+  id: string;
   text: string;
   signedUrl: string;
 }
@@ -91,7 +91,7 @@ const InterviewPage = () => {
   };
 
   const handleStartRecordButton = async () => {
-    if (!question?._id || !streamRef.current) return;
+    if (!question?.id || !streamRef.current) return;
 
     const mediaRecorder = new MediaRecorder(streamRef.current, {
       mimeType: "video/webm; codecs=vp8",
@@ -110,7 +110,7 @@ const InterviewPage = () => {
 
       try {
         const { data } = await axios.post(
-          `http://localhost:3000/api/interviews/6989fcbfc80f4653dd8fb102/questions/${question?._id}/chunk`,
+          `http://localhost:3000/api/interviews/6989fcbfc80f4653dd8fb102/questions/${question?.id}/chunk`,
           formData,
           {
             headers: {
@@ -121,7 +121,7 @@ const InterviewPage = () => {
         );
 
         const newQestion: Question = {
-          _id: data._id,
+          id: data.id,
           signedUrl:
             "isDone" in data ? data.finalTtsSignedUrl : data.aiTtsSignedUrl,
           text: "isDone" in data ? data.finalMessage : data.aiQuestion,
@@ -178,7 +178,7 @@ const InterviewPage = () => {
       );
       // Convert to Question interface
       const question: Question = {
-        _id: data._id,
+        id: data.id,
         signedUrl:
           "isDone" in data ? data.finalTtsSignedUrl : data.aiTtsSignedUrl,
         text: "isDone" in data ? data.finalMessage : data.aiQuestion,
