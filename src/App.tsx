@@ -3,6 +3,7 @@ import { useStore } from "@/stores/use-store";
 import { useEffect, useEffectEvent } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { api } from "./utils/axios";
+import { Toaster } from "@/components/ui/sonner";
 
 function App() {
   const navigate = useNavigate();
@@ -57,7 +58,12 @@ function App() {
     fetchUser();
   }, [isLoading, isAuthenticated, navigate, token]);
 
-  return <Outlet />;
+  return (
+    <>
+      <Toaster />
+      <Outlet />
+    </>
+  );
 }
 
 export default App;
