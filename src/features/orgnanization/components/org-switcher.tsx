@@ -15,103 +15,36 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useStore } from "@/stores/use-store";
+import { type Organization } from "@/stores/interfaces/organization.store.interface";
+import OrgAvatar from "./org-avatar";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface Organization {
-  id: string;
-  name: string;
-  slug: string;
-  plan: "free" | "pro" | "enterprise";
-  memberCount: number;
-  avatarColor: string; // tailwind bg class
-  initial: string;
-}
-
-// ─── Mock Data (replace with real store/API) ──────────────────────────────────
-
-const ORGANIZATIONS: Organization[] = [
-  {
-    id: "1",
-    name: "Mica AI",
-    slug: "mica-ai",
-    plan: "enterprise",
-    memberCount: 24,
-    avatarColor: "bg-violet-500",
-    initial: "M",
-  },
-  {
-    id: "2",
-    name: "Docwebu",
-    slug: "docwebu",
-    plan: "pro",
-    memberCount: 8,
-    avatarColor: "bg-emerald-500",
-    initial: "D",
-  },
-  {
-    id: "3",
-    name: "Atlas Corp",
-    slug: "atlas-corp",
-    plan: "free",
-    memberCount: 3,
-    avatarColor: "bg-amber-500",
-    initial: "A",
-  },
-];
-
-const PLAN_LABELS: Record<Organization["plan"], string> = {
-  free: "Free",
-  pro: "Pro",
-  enterprise: "Enterprise",
-};
-
-const PLAN_STYLES: Record<Organization["plan"], string> = {
-  free: "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400",
-  pro: "bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400",
-  enterprise:
-    "bg-violet-50 text-violet-600 dark:bg-violet-950 dark:text-violet-400",
-};
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-const OrgAvatar = ({
-  org,
-  size = "sm",
-}: {
-  org: Organization;
-  size?: "sm" | "md";
-}) => (
-  <span
-    className={cn(
-      "inline-flex items-center justify-center rounded-md font-semibold text-white shrink-0",
-      org.avatarColor,
-      size === "sm" ? "h-6 w-6 text-xs" : "h-8 w-8 text-sm",
-    )}
-  >
-    {org.initial}
-  </span>
-);
-
-interface OrgSwitcherProps {
-  /** Currently active org id; defaults to first in list */
-  defaultOrgId?: string;
-  onOrgChange?: (org: Organization) => void;
-}
-
-export function OrgSwitcher({ defaultOrgId, onOrgChange }: OrgSwitcherProps) {
-  const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<Organization>(
-    () => ORGANIZATIONS.find((o) => o.id === defaultOrgId) ?? ORGANIZATIONS[0]!,
+export function OrgSwitcher({ currentUserId }: { currentUserId: string }) {
+  const organizations = useStore((state) => state.organizations);
+  const currentOrganizationId = useStore(
+    (state) => state.currentOrganizationId,
+  );
+  const setCurrentOrganization = useStore(
+    (state) => state.setCurrentOrganization,
   );
 
+  const [open, setOpen] = useState(false);
+
+  const selected =
+    organizations.find((o) => o.id === currentOrganizationId) ??
+    organizations[0];
+
+  const getUserRole = (org: Organization) =>
+    org.members.find((m) => m.userId === currentUserId)?.role ?? "member";
+
   const handleSelect = (org: Organization) => {
-    setSelected(org);
-    onOrgChange?.(org);
+    setCurrentOrganization(org.id);
+    // onOrgChange?.(org);
     setOpen(false);
   };
+
+  if (!selected) return null;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -150,7 +83,7 @@ export function OrgSwitcher({ defaultOrgId, onOrgChange }: OrgSwitcherProps) {
       >
         <Command>
           {/* Search */}
-          <div className="flex items-center px-3 py-0.5 ">
+          <div className="flex items-center px-3 py-0.5">
             <CommandInput
               placeholder="Find an organization..."
               className="h-9 p-0 text-sm focus-visible:ring-0 placeholder:text-muted-foreground/70"
@@ -169,7 +102,7 @@ export function OrgSwitcher({ defaultOrgId, onOrgChange }: OrgSwitcherProps) {
               </div>
             </CommandEmpty>
 
-            {/* Current org section */}
+            {/* Org list */}
             <CommandGroup
               heading={
                 <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
@@ -178,12 +111,14 @@ export function OrgSwitcher({ defaultOrgId, onOrgChange }: OrgSwitcherProps) {
               }
               className="px-1.5 pt-2 pb-1"
             >
-              {ORGANIZATIONS.map((org) => {
+              {organizations.map((org) => {
                 const isActive = org.id === selected.id;
+                const role = getUserRole(org);
+
                 return (
                   <CommandItem
                     key={org.id}
-                    value={`${org.name} ${org.slug}`}
+                    value={org.name}
                     onSelect={() => handleSelect(org)}
                     className={cn(
                       "group flex items-center gap-3 rounded-md px-2.5 py-2.5 cursor-pointer",
@@ -196,32 +131,21 @@ export function OrgSwitcher({ defaultOrgId, onOrgChange }: OrgSwitcherProps) {
 
                     {/* Meta */}
                     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                      <div className="flex items-center gap-1.5">
-                        <span
-                          className={cn(
-                            "truncate text-sm font-medium leading-none",
-                            isActive
-                              ? "text-foreground"
-                              : "text-foreground/80 group-hover:text-foreground",
-                          )}
-                        >
-                          {org.name}
-                        </span>
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "h-4 px-1 py-0 text-[10px] font-medium border-0",
-                            PLAN_STYLES[org.plan],
-                          )}
-                        >
-                          {PLAN_LABELS[org.plan]}
-                        </Badge>
-                      </div>
+                      <span
+                        className={cn(
+                          "truncate text-sm font-medium leading-none",
+                          isActive
+                            ? "text-foreground"
+                            : "text-foreground/80 group-hover:text-foreground",
+                        )}
+                      >
+                        {org.name}
+                      </span>
                       <span className="flex items-center gap-1 text-[11px] text-muted-foreground/70 leading-none">
                         <Layers className="h-2.5 w-2.5" />
-                        {org.memberCount} member
-                        {org.memberCount !== 1 ? "s" : ""}
-                        &nbsp;·&nbsp;/{org.slug}
+                        {org.members.length} member
+                        {org.members.length !== 1 ? "s" : ""}
+                        &nbsp;·&nbsp;{role}
                       </span>
                     </div>
 
