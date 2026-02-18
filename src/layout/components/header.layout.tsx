@@ -12,7 +12,7 @@ const Header = () => {
   const user = useStore((store) => store.user);
 
   return (
-    <header className="sticky top-0 z-50 flex h-14 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur supports-backdrop-filter:bg-background/80">
+    <header className="sticky top-0 z-50 flex h-14 items-center gap-3 bg-background/95 px-4 backdrop-blur supports-backdrop-filter:bg-background/80">
       {/* Mobile sidebar trigger */}
       <Sheet>
         <SheetTrigger asChild>
@@ -35,13 +35,7 @@ const Header = () => {
         <span className="text-muted-foreground/30 select-none text-lg font-light">
           /
         </span>
-        <OrgSwitcher
-          defaultOrgId="1"
-          onOrgChange={(org) => {
-            // TODO: update store, redirect, etc.
-            console.log("Switched to", org.slug);
-          }}
-        />
+        {user && <OrgSwitcher currentUserId={user.id} />}
       </div>
 
       {/* Spacer */}
