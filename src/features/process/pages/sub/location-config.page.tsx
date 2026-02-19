@@ -28,18 +28,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { type Location } from "@/features/orgnanization/interfaces/location.interface";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Plus, Pencil, Trash2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useStore } from "@/stores/use-store";
 import { toast } from "sonner";
 import { api } from "@/utils/axios";
-
-interface Location {
-  id: string;
-  name: string;
-  createdAt: string;
-}
 
 const LocationConfigPage = () => {
   const queryClient = useQueryClient();
