@@ -8,7 +8,7 @@ export const organization: StateCreator<OrganizationStore> = (set) => ({
 
   setOrganizations: (data) => set({ organizations: data }),
 
-  setCurrentOrganization: (id) => set({ currentOrganizationId: id }),
+  setCurrentOrganizationId: (id) => set({ currentOrganizationId: id }),
 
   clearCurrentOrganization: () => set({ currentOrganizationId: null }),
 });

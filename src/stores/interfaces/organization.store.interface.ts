@@ -19,6 +19,6 @@ export interface OrganizationStore {
   currentOrganizationId: string | null;
 
   setOrganizations: (data: Organization[]) => void;
-  setCurrentOrganization: (id: string) => void;
+  setCurrentOrganizationId: (id: string) => void;
   clearCurrentOrganization: () => void;
 }
