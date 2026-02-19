@@ -36,6 +36,7 @@ import { useStore } from "@/stores/use-store";
 import { api } from "@/utils/axios";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info } from "lucide-react";
+import { toast } from "sonner";
 
 interface NewJobPageProps {
   onBack: () => void;
@@ -49,6 +50,7 @@ const recruiters = [
 ];
 
 const NewJobPage = ({ onBack }: NewJobPageProps) => {
+  const user = useStore((state) => state.user);
   const currentOrganizationId = useStore(
     (state) => state.currentOrganizationId,
   );
@@ -74,7 +76,7 @@ const NewJobPage = ({ onBack }: NewJobPageProps) => {
   });
 
   const [formData, setFormData] = useState({
-    jobTitle: "",
+    position: "",
     department: "",
     location: "",
     employmentType: "",
@@ -126,11 +128,29 @@ const NewJobPage = ({ onBack }: NewJobPageProps) => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    console.log("Form Data:", { ...formData, skills });
-    // You would typically send this to your API
+    const newJob = {
+      ...formData,
+      skills,
+      createdBy: user?.id,
+      organizationId: currentOrganizationId,
+    };
+
+    try {
+      const { data } = await api.post("/jobs", newJob);
+      console.log(data);
+      toast.success("Position published successfully", {
+        description: `${formData.position} has been posted and is now accepting applications.`,
+      });
+      onBack();
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to publish position", {
+        description:
+          "Something went wrong while posting the job. Please try again.",
+      });
+    }
   };
 
   return (
@@ -166,14 +186,14 @@ const NewJobPage = ({ onBack }: NewJobPageProps) => {
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="jobTitle">
+                <Label htmlFor="position">
                   Job Title <span className="text-destructive">*</span>
                 </Label>
                 <Input
-                  id="jobTitle"
-                  name="jobTitle"
+                  id="position"
+                  name="position"
                   placeholder="e.g., Senior Frontend Developer"
-                  value={formData.jobTitle}
+                  value={formData.position}
                   onChange={handleInputChange}
                   required
                 />
