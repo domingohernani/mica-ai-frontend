@@ -28,18 +28,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { type Department } from "@/features/orgnanization/interfaces/department.interface";
 import { Badge } from "@/components/ui/badge";
 import { Building2, Plus, Pencil, Trash2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useStore } from "@/stores/use-store";
 import { toast } from "sonner";
 import { api } from "@/utils/axios";
-
-interface Department {
-  id: string;
-  name: string;
-  createdAt: string;
-}
 
 const DepartmentConfigPage = () => {
   const queryClient = useQueryClient();

@@ -29,20 +29,17 @@ import {
 import PageHeader from "@/components/layout/page-header";
 import EMPLOYMENT_TYPES from "../../constants/employment-types.contant";
 import EXPERIENCE_LEVEL from "../../constants/experience-level.contant";
+import { type Department } from "@/features/orgnanization/interfaces/department.interface";
+import { type Location } from "@/features/orgnanization/interfaces/location.interface";
+import { useQuery } from "@tanstack/react-query";
+import { useStore } from "@/stores/use-store";
+import { api } from "@/utils/axios";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Info } from "lucide-react";
 
 interface NewJobPageProps {
   onBack: () => void;
 }
-
-const departments = [
-  "Engineering",
-  "Design",
-  "Marketing",
-  "Sales",
-  "Analytics",
-  "Operations",
-  "Human Resources",
-];
 
 const recruiters = [
   "Sarah Mitchell",
@@ -51,18 +48,31 @@ const recruiters = [
   "Emily Rodriguez",
 ];
 
-const locations = [
-  "Remote",
-  "New York, NY",
-  "San Francisco, CA",
-  "Austin, TX",
-  "Seattle, WA",
-  "Boston, MA",
-  "Chicago, IL",
-  "Hybrid",
-];
-
 const NewJobPage = ({ onBack }: NewJobPageProps) => {
+  const currentOrganizationId = useStore(
+    (state) => state.currentOrganizationId,
+  );
+
+  const { data: departments = [] } = useQuery<Department[]>({
+    queryKey: ["departments"],
+    queryFn: async () => {
+      const { data } = await api.get(
+        `/organizations/${currentOrganizationId}/departments`,
+      );
+      return data;
+    },
+  });
+
+  const { data: locations = [] } = useQuery<Location[]>({
+    queryKey: ["locations"],
+    queryFn: async () => {
+      const { data } = await api.get(
+        `/organizations/${currentOrganizationId}/locations`,
+      );
+      return data;
+    },
+  });
+
   const [formData, setFormData] = useState({
     jobTitle: "",
     department: "",
@@ -75,7 +85,7 @@ const NewJobPage = ({ onBack }: NewJobPageProps) => {
     description: "",
     requirements: "",
     benefits: "",
-    openPositions: "1",
+    openPositions: "",
     applicationDeadline: "",
   });
 
@@ -87,8 +97,11 @@ const NewJobPage = ({ onBack }: NewJobPageProps) => {
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >,
   ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "number" ? (value === "" ? 0 : Number(value)) : value,
+    }));
   };
 
   const handleSelectChange = (name: string, value: string) => {
@@ -170,48 +183,68 @@ const NewJobPage = ({ onBack }: NewJobPageProps) => {
                 <Label htmlFor="department">
                   Department <span className="text-destructive">*</span>
                 </Label>
-                <Select
-                  value={formData.department}
-                  onValueChange={(value) =>
-                    handleSelectChange("department", value)
-                  }
-                  required
-                >
-                  <SelectTrigger id="department" className="w-full">
-                    <SelectValue placeholder="Select department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {departments.map((dept) => (
-                      <SelectItem key={dept} value={dept}>
-                        {dept}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {departments.length === 0 ? (
+                  <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertDescription>
+                      No departments found. Please add a department in Settings
+                      first.
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <Select
+                    value={formData.department}
+                    onValueChange={(value) =>
+                      handleSelectChange("department", value)
+                    }
+                    required
+                  >
+                    <SelectTrigger id="department" className="w-full">
+                      <SelectValue placeholder="Select department" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {departments.map((dept) => (
+                        <SelectItem key={dept.id} value={dept.name}>
+                          {dept.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="location">
                   Location <span className="text-destructive">*</span>
                 </Label>
-                <Select
-                  value={formData.location}
-                  onValueChange={(value) =>
-                    handleSelectChange("location", value)
-                  }
-                  required
-                >
-                  <SelectTrigger id="location" className="w-full">
-                    <SelectValue placeholder="Select location" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {locations.map((loc) => (
-                      <SelectItem key={loc} value={loc}>
-                        {loc}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {locations.length === 0 ? (
+                  <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertDescription>
+                      No locations found. Please add a location in Settings
+                      first.
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <Select
+                    value={formData.location}
+                    onValueChange={(value) =>
+                      handleSelectChange("location", value)
+                    }
+                    required
+                  >
+                    <SelectTrigger id="location" className="w-full">
+                      <SelectValue placeholder="Select location" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {locations.map((loc) => (
+                        <SelectItem key={loc.id} value={loc.name}>
+                          {loc.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
 
               <div className="space-y-2">
