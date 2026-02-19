@@ -30,6 +30,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Building2, Plus, Pencil, Trash2 } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useStore } from "@/stores/use-store";
+import { toast } from "sonner";
+import { api } from "@/utils/axios";
 
 interface Department {
   id: string;
@@ -38,15 +42,136 @@ interface Department {
 }
 
 const DepartmentConfigPage = () => {
-  const [departments, setDepartments] = useState<Department[]>([
-    { id: "1", name: "Engineering", createdAt: new Date().toISOString() },
-    { id: "2", name: "Design", createdAt: new Date().toISOString() },
-    { id: "3", name: "Marketing", createdAt: new Date().toISOString() },
-    { id: "4", name: "Sales", createdAt: new Date().toISOString() },
-    { id: "5", name: "Analytics", createdAt: new Date().toISOString() },
-    { id: "6", name: "Operations", createdAt: new Date().toISOString() },
-    { id: "7", name: "Human Resources", createdAt: new Date().toISOString() },
-  ]);
+  const queryClient = useQueryClient();
+  const user = useStore((state) => state.user);
+  const currentOrganizationId = useStore(
+    (state) => state.currentOrganizationId,
+  );
+
+  const fetchDepartments = async () => {
+    const { data } = await api.get(
+      `/organizations/${currentOrganizationId}/departments`,
+    );
+    return data;
+  };
+
+  const addDepartment = async (name: string) => {
+    const { data } = await api.post(
+      `/organizations/${currentOrganizationId}/departments`,
+      { name, createdBy: user?.id },
+    );
+
+    toast.success("Department added successfully", {
+      description: (
+        <span className="text-muted-foreground">
+          {name} has been added to the organization.
+        </span>
+      ),
+    });
+    return data;
+  };
+
+  const updateDepartment = async ({
+    id,
+    name,
+  }: {
+    id: string;
+    name: string;
+  }) => {
+    const { data } = await api.patch(
+      `/organizations/${currentOrganizationId}/departments/${id}`,
+      { name },
+    );
+    toast.success("Department updated successfully", {
+      description: (
+        <span className="text-muted-foreground">
+          Department has been updated successfully.
+        </span>
+      ),
+    });
+    return data;
+  };
+
+  const deleteDepartment = async (id: string) => {
+    const { data } = await api.delete(
+      `/organizations/${currentOrganizationId}/departments/${id}`,
+    );
+
+    toast.success("Department deleted successfully", {
+      description: (
+        <span className="text-muted-foreground">
+          Department has been deleted successfully.
+        </span>
+      ),
+    });
+    return data;
+  };
+
+  const {
+    data: departments = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["departments"],
+    queryFn: fetchDepartments,
+  });
+
+  const addMutation = useMutation({
+    mutationFn: addDepartment,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["departments"] });
+      setDepartmentInput("");
+    },
+    onError: () => {
+      toast.error("Failed to add department", {
+        description: (
+          <span className="text-muted-foreground">
+            Something went wrong. Please try again.
+          </span>
+        ),
+      });
+      setDepartmentInput("");
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: updateDepartment,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["departments"] });
+      setEditingDepartment(null);
+      setDepartmentInput("");
+    },
+    onError: () => {
+      toast.error("Failed to update department", {
+        description: (
+          <span className="text-muted-foreground">
+            Something went wrong. Please try again.
+          </span>
+        ),
+      });
+      setEditingDepartment(null);
+      setDepartmentInput("");
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteDepartment,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["departments"] });
+      setDeletingDepartment(null);
+    },
+    onError: () => {
+      toast.error("Failed to delete department", {
+        description: (
+          <span className="text-muted-foreground">
+            Something went wrong. Please try again.
+          </span>
+        ),
+      });
+      setDeletingDepartment(null);
+    },
+  });
+
   const [departmentInput, setDepartmentInput] = useState("");
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(
     null,
@@ -56,40 +181,45 @@ const DepartmentConfigPage = () => {
 
   // Department CRUD Operations
   const handleAddDepartment = () => {
-    if (
-      departmentInput.trim() &&
-      !departments.some((d) => d.name === departmentInput.trim())
-    ) {
-      const newDepartment: Department = {
-        id: Date.now().toString(),
-        name: departmentInput.trim(),
-        createdAt: new Date().toISOString(),
-      };
-      setDepartments([...departments, newDepartment]);
-      setDepartmentInput("");
+    const trimmed = departmentInput.trim();
+
+    if (!trimmed) {
+      toast.error("Department name is required", {
+        description: (
+          <span className="text-muted-foreground">
+            Please enter a valid department name before adding.
+          </span>
+        ),
+      });
+      return;
     }
+
+    if (departments.some((d: Department) => d.name === trimmed)) {
+      toast.error("Department already exists", {
+        description: (
+          <span className="text-muted-foreground">
+            {trimmed} is already in the list
+          </span>
+        ),
+      });
+      return;
+    }
+
+    addMutation.mutate(trimmed);
   };
 
   const handleUpdateDepartment = () => {
     if (editingDepartment && departmentInput.trim()) {
-      setDepartments(
-        departments.map((dept) =>
-          dept.id === editingDepartment.id
-            ? { ...dept, name: departmentInput.trim() }
-            : dept,
-        ),
-      );
-      setEditingDepartment(null);
-      setDepartmentInput("");
+      updateMutation.mutate({
+        id: editingDepartment.id,
+        name: departmentInput.trim(),
+      });
     }
   };
 
   const handleDeleteDepartment = () => {
     if (deletingDepartment) {
-      setDepartments(
-        departments.filter((dept) => dept.id !== deletingDepartment.id),
-      );
-      setDeletingDepartment(null);
+      deleteMutation.mutate(deletingDepartment.id);
     }
   };
 
@@ -115,6 +245,14 @@ const DepartmentConfigPage = () => {
       }
     }
   };
+
+  if (isLoading) return <p>Loading...</p>;
+  if (error) return <p>Something went wrong</p>;
+
+  const isMutating =
+    addMutation.isPending ||
+    updateMutation.isPending ||
+    deleteMutation.isPending;
 
   return (
     <>
@@ -142,28 +280,40 @@ const DepartmentConfigPage = () => {
                   value={departmentInput}
                   onChange={(e) => setDepartmentInput(e.target.value)}
                   onKeyPress={handleDepartmentKeyPress}
+                  disabled={isMutating}
                 />
                 {editingDepartment ? (
                   <>
                     <Button
                       type="button"
                       onClick={handleUpdateDepartment}
-                      disabled={!departmentInput.trim()}
+                      disabled={!departmentInput.trim() || isMutating}
                     >
-                      Update
+                      {updateMutation.isPending ? "Saving..." : "Update"}
                     </Button>
                     <Button
                       type="button"
                       variant="outline"
                       onClick={cancelEditDepartment}
+                      disabled={isMutating}
                     >
                       Cancel
                     </Button>
                   </>
                 ) : (
-                  <Button type="button" onClick={handleAddDepartment}>
-                    <Plus className="w-4 h-4 mr-1" />
-                    Add
+                  <Button
+                    type="button"
+                    onClick={handleAddDepartment}
+                    disabled={isMutating}
+                  >
+                    {addMutation.isPending ? (
+                      "Adding..."
+                    ) : (
+                      <>
+                        <Plus className="w-4 h-4 mr-1" />
+                        Add
+                      </>
+                    )}
                   </Button>
                 )}
               </div>
@@ -190,7 +340,7 @@ const DepartmentConfigPage = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    departments.map((department) => (
+                    departments.map((department: Department) => (
                       <TableRow key={department.id}>
                         <TableCell className="font-medium">
                           {department.name}
@@ -202,6 +352,7 @@ const DepartmentConfigPage = () => {
                               size="icon"
                               onClick={() => startEditDepartment(department)}
                               className="h-8 w-8"
+                              disabled={isMutating}
                             >
                               <Pencil className="w-4 h-4" />
                             </Button>
@@ -210,6 +361,7 @@ const DepartmentConfigPage = () => {
                               size="icon"
                               onClick={() => setDeletingDepartment(department)}
                               className="h-8 w-8 hover:text-destructive"
+                              disabled={isMutating}
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -246,12 +398,15 @@ const DepartmentConfigPage = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteDepartment}
+              disabled={deleteMutation.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

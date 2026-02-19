@@ -20,8 +20,8 @@ function App() {
 
   // For organizations
   const setOrganizations = useStore((store) => store.setOrganizations);
-  const setCurrentOrganization = useStore(
-    (store) => store.setCurrentOrganization,
+  const setCurrentOrganizationId = useStore(
+    (store) => store.setCurrentOrganizationId,
   );
 
   // When the page load, get the access token from the auth0.
@@ -79,7 +79,7 @@ function App() {
     try {
       const { data } = await api.get(`/organizations/user/${userStore.id}`);
       setOrganizations(data);
-      setCurrentOrganization(data[0]);
+      setCurrentOrganizationId(data[0].id);
     } catch (error) {
       console.error(error);
     }
@@ -94,7 +94,7 @@ function App() {
 
   return (
     <>
-      <Toaster />
+      <Toaster position="top-center" />
       <Outlet />
     </>
   );
