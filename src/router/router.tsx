@@ -17,6 +17,7 @@ import OnboardPage from "@/features/orgnanization/pages/onboard-page";
 // Others
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import InterviewPage from "@/features/interview/pages/interview.page";
+import ProcessConfigPage from "@/features/process/pages/process-config.page";
 
 const router = createBrowserRouter([
   {
@@ -43,12 +44,14 @@ const router = createBrowserRouter([
         element: <InterviewPage />,
       },
       {
-        path: "/",
+        path: "app",
         element: <MainLayout />,
         children: [
           {
             index: true,
-            element: <Navigate to="/talent-acquisition/candidates" replace />,
+            element: (
+              <Navigate to="/app/talent-acquisition/candidates" replace />
+            ),
           },
           {
             path: "talent-acquisition",
@@ -68,8 +71,19 @@ const router = createBrowserRouter([
             ],
           },
           {
+            path: "process",
+            children: [
+              {
+                path: "config",
+                element: <ProcessConfigPage />,
+              },
+            ],
+          },
+          {
             path: "*",
-            element: <Navigate to={"/hiring/candidates"} replace />,
+            element: (
+              <Navigate to={"/app/talent-acquisition/candidates"} replace />
+            ),
           },
         ],
       },

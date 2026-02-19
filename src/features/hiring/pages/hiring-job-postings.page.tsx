@@ -23,8 +23,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, MoreVertical, Eye, Users, Calendar } from "lucide-react";
+import { Search, MoreVertical, Eye, Users, Calendar, Plus } from "lucide-react";
 import PageHeader from "@/components/layout/page-header";
+import NewJobPage from "./sub/new-job.page";
 
 // Mock data - replace with your actual data fetching
 const mockJobPositions = [
@@ -156,6 +157,7 @@ const HiringJobPostingPage = () => {
   const [selectedStatus, setSelectedStatus] = useState("All Statuses");
   const [selectedRecruiter, setSelectedRecruiter] = useState("All Recruiters");
   const [sortBy, setSortBy] = useState("date-desc");
+  const [showNewJobForm, setShowNewJobForm] = useState(false);
 
   // Filter and sort logic
   const filteredAndSortedPositions = mockJobPositions
@@ -198,14 +200,29 @@ const HiringJobPostingPage = () => {
       }
     });
 
+  // Show new job form instead of list
+  if (showNewJobForm) {
+    return (
+      <section>
+        <NewJobPage onBack={() => setShowNewJobForm(false)} />
+      </section>
+    );
+  }
+
   return (
     <>
       {/* Header */}
       <section>
-        <PageHeader
-          title="Job Positions"
-          subtitle="Manage all open, paused, and closed positions across your organization."
-        />
+        <div className="flex items-center justify-between">
+          <PageHeader
+            title="Job Positions"
+            subtitle="Manage all open, paused, and closed positions across your organization."
+          />
+          <Button onClick={() => setShowNewJobForm(true)} className="gap-2">
+            <Plus className="w-4 h-4" />
+            New Position
+          </Button>
+        </div>
       </section>
 
       {/* Filters and Search */}

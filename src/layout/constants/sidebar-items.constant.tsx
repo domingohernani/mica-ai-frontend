@@ -29,17 +29,17 @@ const SIDEBAR_ITEMS: NavGroup[] = [
     items: [
       {
         title: "Candidates",
-        href: "/talent-acquisition/candidates",
+        href: "/app/talent-acquisition/candidates",
         icon: <Users className="w-4 h-4" />,
       },
       {
         title: "Interview Results",
-        href: "/talent-acquisition/results",
+        href: "/app/talent-acquisition/results",
         icon: <FileText className="w-4 h-4" />,
       },
       {
         title: "Job Postings",
-        href: "/talent-acquisition/jobs",
+        href: "/app/talent-acquisition/jobs",
         icon: <Briefcase className="w-4 h-4" />,
       },
     ],
@@ -49,12 +49,12 @@ const SIDEBAR_ITEMS: NavGroup[] = [
     items: [
       {
         title: "Templates",
-        href: "/interviews/templates",
+        href: "/app/process/templates",
         icon: <LayoutGrid className="w-4 h-4" />,
       },
       {
         title: "Config",
-        href: "/interviews/settings",
+        href: "/app/process/config",
         icon: <Settings className="w-4 h-4" />,
       },
     ],
@@ -64,7 +64,7 @@ const SIDEBAR_ITEMS: NavGroup[] = [
     items: [
       {
         title: "Insights",
-        href: "/insights",
+        href: "/app/insights",
         icon: <PieChart className="w-4 h-4" />,
       },
     ],
@@ -74,17 +74,17 @@ const SIDEBAR_ITEMS: NavGroup[] = [
     items: [
       {
         title: "Team & Perms",
-        href: "/admin/team",
+        href: "/app/admin/team",
         icon: <Shield className="w-4 h-4" />,
       },
       {
         title: "Integrations",
-        href: "/admin/integrations",
+        href: "/app/admin/integrations",
         icon: <Plug className="w-4 h-4" />,
       },
       {
         title: "Billing",
-        href: "/admin/billing",
+        href: "/app/admin/billing",
         icon: <CreditCard className="w-4 h-4" />,
       },
     ],

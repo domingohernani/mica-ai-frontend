@@ -4,7 +4,7 @@ import type { User } from "@/types/user.type";
 import { api } from "@/utils/axios";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useEffect, useEffectEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { data, useNavigate } from "react-router-dom";
 import EmailSentIllustation from "../assets/illustrations/email-sent-illustration";
 import { FieldDescription } from "@/components/ui/field";
 import CelebrationIllustration from "@/assets/illustrations/celebration-illustration";
@@ -37,7 +37,7 @@ const CallbackPage = () => {
           lastName: user.family_name,
           email: user.email,
           isVerified: user.email_verified,
-          pictureUrl: user.picture,
+          profileUrl: user.picture,
         };
 
         // Create user account
@@ -46,7 +46,7 @@ const CallbackPage = () => {
         // Checking user's organization
         if (userData.isVerified) {
           const { data: organizationData } = await api.get(
-            `organizations/user/${userData._id}`
+            `organizations/user/${userData.id}`,
           );
           // If the user has no organization, navigate to onboarding
           if (!organizationData.length) {
@@ -94,12 +94,12 @@ const CallbackPage = () => {
             <div>
               {user?.email_verified ? (
                 <section className="flex flex-row-reverse justify-center w-10/12 h-screen gap-3 py-10 mx-auto max-w-400rem">
-                  <section className="rotate-y-180 hidden lg:flex justify-end max-w-160">
+                  <section className="justify-end hidden rotate-y-180 lg:flex max-w-160">
                     <div>
                       <CelebrationIllustration />
                     </div>
                   </section>
-                  <section className="flex flex-col gap-2 justify-center flex-1 max-w-160">
+                  <section className="flex flex-col justify-center flex-1 gap-2 max-w-160">
                     <h1 className="text-xl font-bold">Email Verified</h1>
                     <FieldDescription>
                       Your email has been <strong>successfully verified</strong>
@@ -113,12 +113,12 @@ const CallbackPage = () => {
                 </section>
               ) : (
                 <section className="flex flex-row-reverse justify-center w-10/12 h-screen gap-3 py-10 mx-auto max-w-400rem">
-                  <section className="rotate-y-180 hidden md:flex justify-end max-w-160">
+                  <section className="justify-end hidden rotate-y-180 md:flex max-w-160">
                     <div>
                       <EmailSentIllustation />
                     </div>
                   </section>
-                  <section className="flex flex-col gap-2 justify-center flex-1 max-w-160">
+                  <section className="flex flex-col justify-center flex-1 gap-2 max-w-160">
                     <h1 className="text-xl font-bold">Verify Your Email</h1>
                     <FieldDescription>
                       A verification link has been{" "}
@@ -133,12 +133,12 @@ const CallbackPage = () => {
             </div>
           ) : (
             <section className="flex flex-row-reverse justify-center w-10/12 h-screen gap-3 py-10 mx-auto max-w-400rem">
-              <section className="rotate-y-180 hidden lg:flex justify-end max-w-160">
+              <section className="justify-end hidden rotate-y-180 lg:flex max-w-160">
                 <div>
                   <MissingIllustration />
                 </div>
               </section>
-              <section className="flex flex-col gap-2 justify-center flex-1 max-w-160">
+              <section className="flex flex-col justify-center flex-1 gap-2 max-w-160">
                 <h1 className="text-xl font-bold">Not Authenticated</h1>
                 <FieldDescription>
                   You are not logged in. Please log in to continue and access

@@ -3,14 +3,26 @@ import { useStore } from "@/stores/use-store";
 import { useEffect, useEffectEvent } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { api } from "./utils/axios";
+import { Toaster } from "@/components/ui/sonner";
 
 function App() {
   const navigate = useNavigate();
   const { user, isLoading, isAuthenticated, getAccessTokenSilently } =
     useAuth0();
+
+  // Tokens
   const setToken = useStore((store) => store.setToken);
   const token = useStore((store) => store.token);
+
+  // For User
   const setUser = useStore((store) => store.setUser);
+  const userStore = useStore((store) => store.user);
+
+  // For organizations
+  const setOrganizations = useStore((store) => store.setOrganizations);
+  const setCurrentOrganizationId = useStore(
+    (store) => store.setCurrentOrganizationId,
+  );
 
   // When the page load, get the access token from the auth0.
   // Then use zustand to store the token
@@ -25,6 +37,9 @@ function App() {
             audience: import.meta.env["VITE_AUTH0_AUDIENCE"],
           },
         });
+        // TODO: remove in production
+        console.log(token);
+
         // Set the token globally available
         setToken(token);
       } catch (error) {
@@ -57,7 +72,32 @@ function App() {
     fetchUser();
   }, [isLoading, isAuthenticated, navigate, token]);
 
-  return <Outlet />;
+  const fetchOrganization = useEffectEvent(async () => {
+    // Ensure the user (global state/zustand) exist
+    if (!userStore) return;
+
+    try {
+      const { data } = await api.get(`/organizations/user/${userStore.id}`);
+      setOrganizations(data);
+      setCurrentOrganizationId(data[0].id);
+    } catch (error) {
+      console.error(error);
+    }
+  });
+
+  // Fetching users' organization
+  useEffect(() => {
+    if (!userStore) return;
+
+    fetchOrganization();
+  }, [userStore]);
+
+  return (
+    <>
+      <Toaster position="top-center" />
+      <Outlet />
+    </>
+  );
 }
 
 export default App;
