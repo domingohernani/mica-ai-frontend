@@ -18,7 +18,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { TabsContent } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,7 +28,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { MapPin, Plus, Pencil, Trash2 } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useStore } from "@/stores/use-store";
+import { toast } from "sonner";
+import { api } from "@/utils/axios";
 
 interface Location {
   id: string;
@@ -38,57 +42,149 @@ interface Location {
 }
 
 const LocationConfigPage = () => {
-  // Locations State
-  const [locations, setLocations] = useState<Location[]>([
-    { id: "1", name: "Remote", createdAt: new Date().toISOString() },
-    { id: "2", name: "New York, NY", createdAt: new Date().toISOString() },
-    { id: "3", name: "San Francisco, CA", createdAt: new Date().toISOString() },
-    { id: "4", name: "Austin, TX", createdAt: new Date().toISOString() },
-    { id: "5", name: "Seattle, WA", createdAt: new Date().toISOString() },
-    { id: "6", name: "Boston, MA", createdAt: new Date().toISOString() },
-    { id: "7", name: "Chicago, IL", createdAt: new Date().toISOString() },
-    { id: "8", name: "Hybrid", createdAt: new Date().toISOString() },
-  ]);
+  const queryClient = useQueryClient();
+  const user = useStore((state) => state.user);
+  const currentOrganizationId = useStore(
+    (state) => state.currentOrganizationId,
+  );
+
+  const fetchLocations = async () => {
+    const { data } = await api.get(
+      `/organizations/${currentOrganizationId}/locations`,
+    );
+    return data;
+  };
+
+  const addLocation = async (name: string) => {
+    const { data } = await api.post(
+      `/organizations/${currentOrganizationId}/locations`,
+      { name, createdBy: user?.id },
+    );
+    toast.success("Location added successfully", {
+      description: (
+        <span>
+          <strong>{name}</strong> has been added to the organization.
+        </span>
+      ),
+    });
+    return data;
+  };
+
+  const updateLocation = async ({ id, name }: { id: string; name: string }) => {
+    const { data } = await api.patch(
+      `/organizations/${currentOrganizationId}/locations/${id}`,
+      { name },
+    );
+    toast.success("Location updated successfully", {
+      description: <span>Location has been updated successfully.</span>,
+    });
+    return data;
+  };
+
+  const deleteLocation = async (id: string) => {
+    const { data } = await api.delete(
+      `/organizations/${currentOrganizationId}/locations/${id}`,
+    );
+    toast.success("Location deleted successfully", {
+      description: <span>Location has been deleted successfully.</span>,
+    });
+    return data;
+  };
+
+  const {
+    data: locations = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["locations"],
+    queryFn: fetchLocations,
+  });
+
+  const addMutation = useMutation({
+    mutationFn: addLocation,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["locations"] });
+      setLocationInput("");
+    },
+    onError: () => {
+      toast.error("Failed to add location", {
+        description: <span>Something went wrong. Please try again.</span>,
+      });
+      setLocationInput("");
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: updateLocation,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["locations"] });
+      setEditingLocation(null);
+      setLocationInput("");
+    },
+    onError: () => {
+      toast.error("Failed to update location", {
+        description: <span>Something went wrong. Please try again.</span>,
+      });
+      setEditingLocation(null);
+      setLocationInput("");
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteLocation,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["locations"] });
+      setDeletingLocation(null);
+    },
+    onError: () => {
+      toast.error("Failed to delete location", {
+        description: <span>Something went wrong. Please try again.</span>,
+      });
+      setDeletingLocation(null);
+    },
+  });
+
   const [locationInput, setLocationInput] = useState("");
   const [editingLocation, setEditingLocation] = useState<Location | null>(null);
   const [deletingLocation, setDeletingLocation] = useState<Location | null>(
     null,
   );
 
-  // Location CRUD Operations
   const handleAddLocation = () => {
-    if (
-      locationInput.trim() &&
-      !locations.some((l) => l.name === locationInput.trim())
-    ) {
-      const newLocation: Location = {
-        id: Date.now().toString(),
-        name: locationInput.trim(),
-        createdAt: new Date().toISOString(),
-      };
-      setLocations([...locations, newLocation]);
-      setLocationInput("");
+    const trimmed = locationInput.trim();
+    if (!trimmed) {
+      toast.error("Location name is required", {
+        description: (
+          <span>Please enter a valid location name before adding.</span>
+        ),
+      });
+      return;
     }
+    if (locations.some((l: Location) => l.name === trimmed)) {
+      toast.error("Location already exists", {
+        description: (
+          <span>
+            <strong>{trimmed}</strong> is already in the list
+          </span>
+        ),
+      });
+      return;
+    }
+    addMutation.mutate(trimmed);
   };
 
   const handleUpdateLocation = () => {
     if (editingLocation && locationInput.trim()) {
-      setLocations(
-        locations.map((loc) =>
-          loc.id === editingLocation.id
-            ? { ...loc, name: locationInput.trim() }
-            : loc,
-        ),
-      );
-      setEditingLocation(null);
-      setLocationInput("");
+      updateMutation.mutate({
+        id: editingLocation.id,
+        name: locationInput.trim(),
+      });
     }
   };
 
   const handleDeleteLocation = () => {
     if (deletingLocation) {
-      setLocations(locations.filter((loc) => loc.id !== deletingLocation.id));
-      setDeletingLocation(null);
+      deleteMutation.mutate(deletingLocation.id);
     }
   };
 
@@ -112,6 +208,14 @@ const LocationConfigPage = () => {
       }
     }
   };
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Something went wrong</div>;
+
+  const isMutating =
+    addMutation.isPending ||
+    updateMutation.isPending ||
+    deleteMutation.isPending;
 
   return (
     <>
@@ -139,28 +243,40 @@ const LocationConfigPage = () => {
                   value={locationInput}
                   onChange={(e) => setLocationInput(e.target.value)}
                   onKeyPress={handleLocationKeyPress}
+                  disabled={isMutating}
                 />
                 {editingLocation ? (
                   <>
                     <Button
                       type="button"
                       onClick={handleUpdateLocation}
-                      disabled={!locationInput.trim()}
+                      disabled={!locationInput.trim() || isMutating}
                     >
-                      Update
+                      {updateMutation.isPending ? "Saving..." : "Update"}
                     </Button>
                     <Button
                       type="button"
                       variant="outline"
                       onClick={cancelEditLocation}
+                      disabled={isMutating}
                     >
                       Cancel
                     </Button>
                   </>
                 ) : (
-                  <Button type="button" onClick={handleAddLocation}>
-                    <Plus className="w-4 h-4 mr-1" />
-                    Add
+                  <Button
+                    type="button"
+                    onClick={handleAddLocation}
+                    disabled={isMutating}
+                  >
+                    {addMutation.isPending ? (
+                      "Adding..."
+                    ) : (
+                      <>
+                        <Plus className="w-4 h-4 mr-1" />
+                        Add
+                      </>
+                    )}
                   </Button>
                 )}
               </div>
@@ -186,7 +302,7 @@ const LocationConfigPage = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    locations.map((location) => (
+                    locations.map((location: Location) => (
                       <TableRow key={location.id}>
                         <TableCell className="font-medium">
                           {location.name}
@@ -198,6 +314,7 @@ const LocationConfigPage = () => {
                               size="icon"
                               onClick={() => startEditLocation(location)}
                               className="h-8 w-8"
+                              disabled={isMutating}
                             >
                               <Pencil className="w-4 h-4" />
                             </Button>
@@ -206,6 +323,7 @@ const LocationConfigPage = () => {
                               size="icon"
                               onClick={() => setDeletingLocation(location)}
                               className="h-8 w-8 hover:text-destructive"
+                              disabled={isMutating}
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -227,6 +345,7 @@ const LocationConfigPage = () => {
           </CardContent>
         </Card>
       </TabsContent>
+
       {/* Delete Location Confirmation Dialog */}
       <AlertDialog
         open={!!deletingLocation}
@@ -246,7 +365,7 @@ const LocationConfigPage = () => {
               onClick={handleDeleteLocation}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
