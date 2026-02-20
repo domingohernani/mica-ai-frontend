@@ -25,112 +25,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Search, MoreVertical, Eye, Users, Calendar, Plus } from "lucide-react";
 import PageHeader from "@/components/layout/page-header";
+import { type Job } from "../interfaces/job.interface";
 import NewJobPage from "./sub/new-job.page";
-
-// Mock data - replace with your actual data fetching
-const mockJobPositions = [
-  {
-    id: 1,
-    jobTitle: "Senior Frontend Developer",
-    department: "Engineering",
-    applicants: 45,
-    status: "Open",
-    timeToFill: "12 days",
-    assignedRecruiter: "Sarah Mitchell",
-    postedDate: "2024-01-15",
-  },
-  {
-    id: 2,
-    jobTitle: "Product Designer",
-    department: "Design",
-    applicants: 32,
-    status: "Open",
-    timeToFill: "8 days",
-    assignedRecruiter: "Michael Chen",
-    postedDate: "2024-01-20",
-  },
-  {
-    id: 3,
-    jobTitle: "Backend Engineer",
-    department: "Engineering",
-    applicants: 28,
-    status: "Paused",
-    timeToFill: "15 days",
-    assignedRecruiter: "Sarah Mitchell",
-    postedDate: "2024-01-10",
-  },
-  {
-    id: 4,
-    jobTitle: "DevOps Engineer",
-    department: "Engineering",
-    applicants: 18,
-    status: "Open",
-    timeToFill: "5 days",
-    assignedRecruiter: "James Wilson",
-    postedDate: "2024-01-25",
-  },
-  {
-    id: 5,
-    jobTitle: "Marketing Manager",
-    department: "Marketing",
-    applicants: 67,
-    status: "Closed",
-    timeToFill: "22 days",
-    assignedRecruiter: "Emily Rodriguez",
-    postedDate: "2024-01-05",
-  },
-  {
-    id: 6,
-    jobTitle: "UX Researcher",
-    department: "Design",
-    applicants: 24,
-    status: "Open",
-    timeToFill: "10 days",
-    assignedRecruiter: "Michael Chen",
-    postedDate: "2024-01-22",
-  },
-  {
-    id: 7,
-    jobTitle: "Data Analyst",
-    department: "Analytics",
-    applicants: 41,
-    status: "Open",
-    timeToFill: "7 days",
-    assignedRecruiter: "Sarah Mitchell",
-    postedDate: "2024-01-18",
-  },
-  {
-    id: 8,
-    jobTitle: "Sales Representative",
-    department: "Sales",
-    applicants: 52,
-    status: "Paused",
-    timeToFill: "18 days",
-    assignedRecruiter: "James Wilson",
-    postedDate: "2024-01-12",
-  },
-];
-
-const departments = [
-  "All Departments",
-  "Engineering",
-  "Design",
-  "Marketing",
-  "Sales",
-  "Analytics",
-  "Operations",
-  "Human Resources",
-];
+import { useQuery } from "@tanstack/react-query";
+import { useStore } from "@/stores/use-store";
+import { api } from "@/utils/axios";
 
 const statuses = ["All Statuses", "Open", "Paused", "Closed"];
-
-const recruiters = [
-  "All Recruiters",
-  "Sarah Mitchell",
-  "Michael Chen",
-  "James Wilson",
-  "Emily Rodriguez",
-];
 
 const sortOptions = [
   { value: "applicants-desc", label: "Most Applicants" },
@@ -151,6 +52,23 @@ const getStatusColor = (status: string) => {
 };
 
 const HiringJobPostingPage = () => {
+  const currentOrganizationId = useStore(
+    (state) => state.currentOrganizationId,
+  );
+
+  const {
+    data: jobs = [],
+    isLoading,
+    error,
+  } = useQuery<Job[]>({
+    queryKey: ["jobs", currentOrganizationId],
+    queryFn: async () => {
+      if (!currentOrganizationId) return [];
+      const { data } = await api.get(`/jobs/${currentOrganizationId}`);
+      return data;
+    },
+  });
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] =
     useState("All Departments");
@@ -159,48 +77,54 @@ const HiringJobPostingPage = () => {
   const [sortBy, setSortBy] = useState("date-desc");
   const [showNewJobForm, setShowNewJobForm] = useState(false);
 
+  // Derive unique departments and recruiters from fetched data
+  const departments = [
+    "All Departments",
+    ...Array.from(new Set(jobs.map((job) => job.department))),
+  ];
+
+  const recruiters = [
+    "All Recruiters",
+    ...Array.from(new Set(jobs.map((job) => job.assignedRecruiter))),
+  ];
+
   // Filter and sort logic
-  const filteredAndSortedPositions = mockJobPositions
-    .filter((position) => {
+  const filteredAndSortedPositions = jobs
+    .filter((job) => {
       const matchesSearch =
-        position.jobTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        position.department.toLowerCase().includes(searchQuery.toLowerCase());
+        job.position.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        job.department.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesDepartment =
         selectedDepartment === "All Departments" ||
-        position.department === selectedDepartment;
+        job.department === selectedDepartment;
       const matchesStatus =
-        selectedStatus === "All Statuses" || position.status === selectedStatus;
+        selectedStatus === "All Statuses" || job.status === selectedStatus;
       const matchesRecruiter =
         selectedRecruiter === "All Recruiters" ||
-        position.assignedRecruiter === selectedRecruiter;
+        job.assignedRecruiter === selectedRecruiter;
       return (
         matchesSearch && matchesDepartment && matchesStatus && matchesRecruiter
       );
     })
     .sort((a, b) => {
       switch (sortBy) {
-        case "applicants-desc":
-          return b.applicants - a.applicants;
-        case "applicants-asc":
-          return a.applicants - b.applicants;
         case "date-desc":
           return (
-            new Date(b.postedDate).getTime() - new Date(a.postedDate).getTime()
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           );
         case "date-asc":
           return (
-            new Date(a.postedDate).getTime() - new Date(b.postedDate).getTime()
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
           );
         case "title-asc":
-          return a.jobTitle.localeCompare(b.jobTitle);
+          return a.position.localeCompare(b.position);
         case "title-desc":
-          return b.jobTitle.localeCompare(a.jobTitle);
+          return b.position.localeCompare(a.position);
         default:
           return 0;
       }
     });
 
-  // Show new job form instead of list
   if (showNewJobForm) {
     return (
       <section>
@@ -305,8 +229,11 @@ const HiringJobPostingPage = () => {
 
       {/* Results Count */}
       <div className="text-sm text-muted-foreground">
-        Showing {filteredAndSortedPositions.length} of {mockJobPositions.length}{" "}
-        positions
+        {isLoading
+          ? "Loading positions..."
+          : error
+            ? "Failed to load positions."
+            : `Showing ${filteredAndSortedPositions.length} of ${jobs.length} positions`}
       </div>
 
       {/* Table Container with horizontal scroll */}
@@ -317,70 +244,86 @@ const HiringJobPostingPage = () => {
               <TableRow>
                 <TableHead className="w-[250px]">Job Title</TableHead>
                 <TableHead className="w-[150px]">Department</TableHead>
+                <TableHead className="w-[130px]">Location</TableHead>
                 <TableHead className="w-[130px] text-center">
                   Applicants
                 </TableHead>
                 <TableHead className="w-[130px]">Status</TableHead>
-                <TableHead className="w-[120px]">Time to Fill</TableHead>
+                <TableHead className="w-[120px]">Experience</TableHead>
                 <TableHead className="w-[180px]">Assigned Recruiter</TableHead>
                 <TableHead className="w-20 text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredAndSortedPositions.length === 0 ? (
+              {isLoading ? (
                 <TableRow>
                   <TableCell
-                    colSpan={7}
+                    colSpan={8}
+                    className="py-12 text-center text-muted-foreground"
+                  >
+                    Loading positions...
+                  </TableCell>
+                </TableRow>
+              ) : error ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={8}
+                    className="py-12 text-center text-muted-foreground"
+                  >
+                    Something went wrong. Please try again.
+                  </TableCell>
+                </TableRow>
+              ) : filteredAndSortedPositions.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={8}
                     className="py-12 text-center text-muted-foreground"
                   >
                     No positions found matching your criteria.
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredAndSortedPositions.map((position) => (
+                filteredAndSortedPositions.map((job) => (
                   <TableRow
-                    key={position.id}
+                    key={job.id}
                     className="cursor-pointer hover:bg-muted/50"
                   >
                     <TableCell>
-                      <div className="font-medium">{position.jobTitle}</div>
+                      <div className="font-medium">{job.position}</div>
                       <div className="flex items-center gap-1 text-sm text-muted-foreground">
                         <Calendar className="w-3 h-3" />
                         Posted{" "}
-                        {new Date(position.postedDate).toLocaleDateString(
-                          "en-US",
-                          {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          },
-                        )}
+                        {new Date(job.createdAt).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="font-medium">{position.department}</div>
+                      <div className="font-medium">{job.department}</div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-medium">{job.location}</div>
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 font-semibold rounded-full bg-primary/10 text-primary">
-                        <Users className="w-4 h-4" />
-                        {position.applicants}
+                        <Users className="w-4 h-4" />—
                       </div>
                     </TableCell>
                     <TableCell>
                       <Badge
                         variant="secondary"
-                        className={getStatusColor(position.status)}
+                        className={getStatusColor(job.status)}
                       >
-                        {position.status}
+                        {job.status}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {position.timeToFill}
+                      {job.experienceLevel}
                     </TableCell>
                     <TableCell>
-                      <div className="font-medium">
-                        {position.assignedRecruiter}
-                      </div>
+                      <div className="font-medium">{job.assignedRecruiter}</div>
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
