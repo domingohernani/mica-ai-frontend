@@ -31,7 +31,7 @@ import EMPLOYMENT_TYPES from "../../constants/employment-types.contant";
 import EXPERIENCE_LEVEL from "../../constants/experience-level.contant";
 import { type Department } from "@/features/orgnanization/interfaces/department.interface";
 import { type Location } from "@/features/orgnanization/interfaces/location.interface";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useStore } from "@/stores/use-store";
 import { api } from "@/utils/axios";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -50,6 +50,7 @@ const recruiters = [
 ];
 
 const NewJobPage = ({ onBack }: NewJobPageProps) => {
+  const queryClient = useQueryClient();
   const user = useStore((state) => state.user);
   const currentOrganizationId = useStore(
     (state) => state.currentOrganizationId,
@@ -142,6 +143,10 @@ const NewJobPage = ({ onBack }: NewJobPageProps) => {
       console.log(data);
       toast.success("Position published successfully", {
         description: `${formData.position} has been posted and is now accepting applications.`,
+      });
+      // Invalidate the old jobs
+      queryClient.invalidateQueries({
+        queryKey: ["jobs", currentOrganizationId],
       });
       onBack();
     } catch (error) {
