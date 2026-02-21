@@ -74,17 +74,17 @@ const SIDEBAR_ITEMS: NavGroup[] = [
     items: [
       {
         title: "Team & Perms",
-        href: "/app/admin/team",
+        href: "/app/organization/team",
         icon: <Shield className="w-4 h-4" />,
       },
       {
         title: "Integrations",
-        href: "/app/admin/integrations",
+        href: "/app/organization/integrations",
         icon: <Plug className="w-4 h-4" />,
       },
       {
         title: "Billing",
-        href: "/app/admin/billing",
+        href: "/app/organization/billing",
         icon: <CreditCard className="w-4 h-4" />,
       },
     ],

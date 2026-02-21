@@ -13,11 +13,16 @@ import HiringJobPostingPage from "@/features/hiring/pages/hiring-job-postings.pa
 
 // Organization Routes
 import OnboardPage from "@/features/orgnanization/pages/onboard-page";
+import OrganizationTeam from "@/features/orgnanization/pages/organization-team";
+
+// Process
+import ProcessConfigPage from "@/features/process/pages/process-config.page";
+
+// Interview
+import InterviewPage from "@/features/interview/pages/interview.page";
 
 // Others
 import { createBrowserRouter, Navigate } from "react-router-dom";
-import InterviewPage from "@/features/interview/pages/interview.page";
-import ProcessConfigPage from "@/features/process/pages/process-config.page";
 
 const router = createBrowserRouter([
   {
@@ -76,6 +81,15 @@ const router = createBrowserRouter([
               {
                 path: "config",
                 element: <ProcessConfigPage />,
+              },
+            ],
+          },
+          {
+            path: "organization",
+            children: [
+              {
+                path: "team",
+                element: <OrganizationTeam />,
               },
             ],
           },
