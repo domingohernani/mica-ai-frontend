@@ -1,6 +1,8 @@
 # Environment files
 .env
-.env.*           # .env.local, .env.production, .env.development, etc.
+.env.*
+.env.production
+.env.development
 .local.env
 *.local          # sometimes people name envs like myapp.local
 
