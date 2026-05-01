@@ -17,6 +17,7 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@tailwindcss/vite": "^4.1.16",
     "@tanstack/react-query": "^5.90.21",
+    "auth0-js": "^9.32.0",
     "axios": "^1.13.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -36,6 +37,7 @@
   "devDependencies": {
     "@eslint/js": "^9.36.0",
     "@tanstack/eslint-plugin-query": "^5.91.4",
+    "@types/auth0-js": "^9.21.6",
     "@types/node": "^24.9.1",
     "@types/react": "^19.1.16",
     "@types/react-dom": "^19.1.9",

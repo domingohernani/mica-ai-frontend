@@ -26,7 +26,7 @@ export function OrgSwitcher({ currentUserId }: { currentUserId: string }) {
     (state) => state.currentOrganizationId,
   );
   const setCurrentOrganization = useStore(
-    (state) => state.setCurrentOrganization,
+    (state) => state.setCurrentOrganizationId,
   );
 
   const [open, setOpen] = useState(false);

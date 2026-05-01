@@ -35,7 +35,7 @@ const Header = () => {
         <span className="text-muted-foreground/30 select-none text-lg font-light">
           /
         </span>
-        {user && <OrgSwitcher currentUserId={user.id} />}
+        {user?.id && <OrgSwitcher currentUserId={user.id} />}
       </div>
 
       {/* Spacer */}
