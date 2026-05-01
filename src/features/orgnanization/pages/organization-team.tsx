@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,6 +47,10 @@ import {
   Calendar,
 } from "lucide-react";
 import PageHeader from "@/components/layout/page-header";
+import { useStore } from "@/stores/use-store";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/utils/axios";
+import { toast } from "sonner";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -56,68 +60,11 @@ interface Member {
   role: string;
   joinedAt: Date;
   organizationId: string;
+  email: string,
+  firstName: string,
+  lastName: string,
+  profileUrl: string,
 }
-
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-
-const MOCK_MEMBERS: Member[] = [
-  {
-    id: "1",
-    userId: "alex.morgan@corp.io",
-    role: "owner",
-    joinedAt: new Date("2023-01-10"),
-    organizationId: "org-1",
-  },
-  {
-    id: "2",
-    userId: "jamie.chen@corp.io",
-    role: "admin",
-    joinedAt: new Date("2023-03-22"),
-    organizationId: "org-1",
-  },
-  {
-    id: "3",
-    userId: "sam.patel@corp.io",
-    role: "admin",
-    joinedAt: new Date("2023-05-14"),
-    organizationId: "org-1",
-  },
-  {
-    id: "4",
-    userId: "riley.brooks@corp.io",
-    role: "hiring_manager",
-    joinedAt: new Date("2023-06-01"),
-    organizationId: "org-1",
-  },
-  {
-    id: "5",
-    userId: "drew.santos@corp.io",
-    role: "hiring_manager",
-    joinedAt: new Date("2023-07-19"),
-    organizationId: "org-1",
-  },
-  {
-    id: "6",
-    userId: "casey.hall@corp.io",
-    role: "interviewer",
-    joinedAt: new Date("2023-08-30"),
-    organizationId: "org-1",
-  },
-  {
-    id: "7",
-    userId: "morgan.lee@corp.io",
-    role: "interviewer",
-    joinedAt: new Date("2023-10-05"),
-    organizationId: "org-1",
-  },
-  {
-    id: "8",
-    userId: "taylor.kim@corp.io",
-    role: "viewer",
-    joinedAt: new Date("2023-11-12"),
-    organizationId: "org-1",
-  },
-];
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
@@ -180,7 +127,7 @@ const formatDate = (date: Date) =>
     month: "short",
     day: "numeric",
     year: "numeric",
-  }).format(date);
+  }).format(new Date(date));
 
 const toDisplayName = (email: string) =>
   email
@@ -192,7 +139,11 @@ const toDisplayName = (email: string) =>
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 const OrganizationTeam = () => {
-  const [members, setMembers] = useState<Member[]>(MOCK_MEMBERS);
+  const currentOrganizationId = useStore(
+    (state) => state.currentOrganizationId,
+  );
+  const queryClient = useQueryClient();
+
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("All Roles");
 
@@ -208,6 +159,112 @@ const OrganizationTeam = () => {
   // Remove confirmation
   const [removeTarget, setRemoveTarget] = useState<Member | null>(null);
 
+  // ─── Fetch Members ───────────────────────────────────────────────────────────
+
+  const {
+    data: members = [],
+    isLoading,
+    error,
+  } = useQuery<Member[]>({
+    queryKey: ["members", currentOrganizationId],
+    queryFn: async () => {
+      if (!currentOrganizationId) return [];
+      const { data } = await api.get(
+        `/organizations/${currentOrganizationId}/members`,
+      );
+
+      console.log(data);
+
+
+      return data;
+    },
+  });
+
+  // ─── Invite Mutation ─────────────────────────────────────────────────────────
+
+  const inviteMutation = useMutation({
+    mutationFn: async (payload: { email: string; role: string }) => {
+      const { data } = await api.post(
+        `/organizations/${currentOrganizationId}/members`,
+        payload,
+      );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["members", currentOrganizationId],
+      });
+      toast.success("Invitation sent successfully.");
+      setInviteEmail("");
+      setInviteRole("hiring_manager");
+      setInviteOpen(false);
+    },
+    onError: () => {
+      toast.error("Failed to send invitation. Please try again.");
+    },
+  });
+
+  // ─── Edit Role Mutation ──────────────────────────────────────────────────────
+
+  const editRoleMutation = useMutation({
+    mutationFn: async (payload: { memberId: string; role: string }) => {
+      const { data } = await api.patch(
+        `/organizations/${currentOrganizationId}/members/${payload.memberId}`,
+        { role: payload.role },
+      );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["members", currentOrganizationId],
+      });
+      toast.success("Role updated successfully.");
+      setEditMember(null);
+    },
+    onError: () => {
+      toast.error("Failed to update role. Please try again.");
+    },
+  });
+
+  // ─── Remove Mutation ─────────────────────────────────────────────────────────
+
+  const removeMutation = useMutation({
+    mutationFn: async (memberId: string) => {
+      await api.delete(
+        `/organizations/${currentOrganizationId}/members/${memberId}`,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["members", currentOrganizationId],
+      });
+      toast.success("Member removed successfully.");
+      setRemoveTarget(null);
+    },
+    onError: () => {
+      toast.error("Failed to remove member. Please try again.");
+    },
+  });
+
+  // ─── Handlers ────────────────────────────────────────────────────────────────
+
+  const handleInvite = () => {
+    if (!inviteEmail.trim()) return;
+    inviteMutation.mutate({ email: inviteEmail.trim(), role: inviteRole });
+  };
+
+  const handleEditSave = () => {
+    if (!editMember) return;
+    editRoleMutation.mutate({ memberId: editMember.id, role: editRole });
+  };
+
+  const handleRemoveConfirm = () => {
+    if (!removeTarget) return;
+    removeMutation.mutate(removeTarget.id);
+  };
+
+  // ─── Derived State ────────────────────────────────────────────────────────────
+
   const filtered = members.filter((m) => {
     const matchSearch =
       m.userId.toLowerCase().includes(search.toLowerCase()) ||
@@ -221,35 +278,6 @@ const OrganizationTeam = () => {
     admins: members.filter((m) => m.role === "admin" || m.role === "owner")
       .length,
     active: members.filter((m) => m.role !== "viewer").length,
-  };
-
-  const handleInvite = () => {
-    if (!inviteEmail.trim()) return;
-    const newMember: Member = {
-      id: String(Date.now()),
-      userId: inviteEmail.trim(),
-      role: inviteRole,
-      joinedAt: new Date(),
-      organizationId: "org-1",
-    };
-    setMembers((prev) => [...prev, newMember]);
-    setInviteEmail("");
-    setInviteRole("hiring_manager");
-    setInviteOpen(false);
-  };
-
-  const handleEditSave = () => {
-    if (!editMember) return;
-    setMembers((prev) =>
-      prev.map((m) => (m.id === editMember.id ? { ...m, role: editRole } : m)),
-    );
-    setEditMember(null);
-  };
-
-  const handleRemoveConfirm = () => {
-    if (!removeTarget) return;
-    setMembers((prev) => prev.filter((m) => m.id !== removeTarget.id));
-    setRemoveTarget(null);
   };
 
   return (
@@ -342,7 +370,11 @@ const OrganizationTeam = () => {
 
       {/* Results Count */}
       <div className="text-sm text-muted-foreground">
-        Showing {filtered.length} of {members.length} members
+        {isLoading
+          ? "Loading members..."
+          : error
+            ? "Failed to load members."
+            : `Showing ${filtered.length} of ${members.length} members`}
       </div>
 
       {/* Table */}
@@ -358,7 +390,25 @@ const OrganizationTeam = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.length === 0 ? (
+              {isLoading ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={4}
+                    className="py-12 text-center text-muted-foreground"
+                  >
+                    Loading members...
+                  </TableCell>
+                </TableRow>
+              ) : error ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={4}
+                    className="py-12 text-center text-muted-foreground"
+                  >
+                    Something went wrong. Please try again.
+                  </TableCell>
+                </TableRow>
+              ) : filtered.length === 0 ? (
                 <TableRow>
                   <TableCell
                     colSpan={4}
@@ -379,19 +429,23 @@ const OrganizationTeam = () => {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="w-9 h-9">
+                            <AvatarImage
+                              src={member.profileUrl}
+                            />
                             <AvatarFallback
                               className={`text-xs font-semibold ${getAvatarColor(member.userId)}`}
                             >
-                              {getInitials(member.userId)}
+                              {member.firstName[0]}
+                              {/* {getInitials(member.userId)} */}
                             </AvatarFallback>
                           </Avatar>
                           <div>
                             <div className="font-medium">
-                              {toDisplayName(member.userId)}
+                              {`${member.firstName} ${member.lastName}`}
                             </div>
                             <div className="flex items-center gap-1 text-sm text-muted-foreground">
                               <Mail className="w-3 h-3" />
-                              {member.userId}
+                              {member.email}
                             </div>
                           </div>
                         </div>
@@ -399,8 +453,8 @@ const OrganizationTeam = () => {
 
                       {/* Role */}
                       <TableCell>
-                        <Badge variant="secondary" className={role.color}>
-                          {role.label}
+                        <Badge variant="secondary" className={role?.color}>
+                          {member.role}
                         </Badge>
                       </TableCell>
 
@@ -530,8 +584,11 @@ const OrganizationTeam = () => {
             <Button variant="outline" onClick={() => setInviteOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleInvite} disabled={!inviteEmail.trim()}>
-              Send Invite
+            <Button
+              onClick={handleInvite}
+              disabled={!inviteEmail.trim() || inviteMutation.isPending}
+            >
+              {inviteMutation.isPending ? "Sending..." : "Send Invite"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -596,7 +653,12 @@ const OrganizationTeam = () => {
             <Button variant="outline" onClick={() => setEditMember(null)}>
               Cancel
             </Button>
-            <Button onClick={handleEditSave}>Save Changes</Button>
+            <Button
+              onClick={handleEditSave}
+              disabled={editRoleMutation.isPending}
+            >
+              {editRoleMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -618,8 +680,12 @@ const OrganizationTeam = () => {
             <Button variant="outline" onClick={() => setRemoveTarget(null)}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleRemoveConfirm}>
-              Remove Member
+            <Button
+              variant="destructive"
+              onClick={handleRemoveConfirm}
+              disabled={removeMutation.isPending}
+            >cd
+              {removeMutation.isPending ? "Removing..." : "Remove Member"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -34,7 +34,6 @@ import {
   XCircle,
   ChevronDown,
   ChevronUp,
-  FileText,
   Video,
   MessageSquare,
   TrendingUp,
@@ -44,7 +43,6 @@ import {
   Share2,
   Mail,
   MoreVertical,
-  ArrowLeft,
   Search,
   ChevronRight,
 } from "lucide-react";
