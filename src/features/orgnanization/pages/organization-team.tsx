@@ -111,13 +111,15 @@ const AVATAR_COLORS = [
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const getInitials = (email: string) =>
-  email
+const getInitials = (email: string) => {
+  return email
     .split("@")[0]
-    .split(".")
+    ?.split(".")
     .map((n) => n[0]?.toUpperCase())
+    .filter((c): c is string => c !== undefined)
     .join("")
-    .slice(0, 2);
+    .slice(0, 2) ?? ""
+}
 
 const getAvatarColor = (email: string) =>
   AVATAR_COLORS[email.charCodeAt(0) % AVATAR_COLORS.length];
@@ -132,9 +134,9 @@ const formatDate = (date: Date) =>
 const toDisplayName = (email: string) =>
   email
     .split("@")[0]
-    .split(".")
+    ?.split(".")
     .map((n) => n.charAt(0).toUpperCase() + n.slice(1))
-    .join(" ");
+    .join(" ") ?? ""
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
@@ -419,7 +421,7 @@ const OrganizationTeam = () => {
                 </TableRow>
               ) : (
                 filtered.map((member) => {
-                  const role = ROLE_CONFIG[member.role] ?? ROLE_CONFIG.viewer;
+                  const role = ROLE_CONFIG[member.role];
                   return (
                     <TableRow
                       key={member.id}
@@ -550,7 +552,7 @@ const OrganizationTeam = () => {
                     ] as const
                   ).map((r) => (
                     <SelectItem key={r} value={r}>
-                      {ROLE_CONFIG[r].label}
+                      {ROLE_CONFIG[r]?.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -640,7 +642,7 @@ const OrganizationTeam = () => {
                       ] as const
                     ).map((r) => (
                       <SelectItem key={r} value={r}>
-                        {ROLE_CONFIG[r].label}
+                        {ROLE_CONFIG[r]?.label}
                       </SelectItem>
                     ))}
                   </SelectContent>

@@ -4,7 +4,7 @@ import type { User } from "@/types/user.type";
 import { api } from "@/utils/axios";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useEffect, useEffectEvent } from "react";
-import { data, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import EmailSentIllustation from "../assets/illustrations/email-sent-illustration";
 import { FieldDescription } from "@/components/ui/field";
 import CelebrationIllustration from "@/assets/illustrations/celebration-illustration";

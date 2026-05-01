@@ -439,6 +439,9 @@ const HiringInterviewResultsPage = () => {
     return "text-red-600";
   };
 
+  // TODO: handle possibly underfined properties
+  if (!candidate) return <></>
+
   return (
     <>
       {/* Header */}
@@ -505,11 +508,10 @@ const HiringInterviewResultsPage = () => {
                   <button
                     key={c.id}
                     onClick={() => setSelectedCandidateId(c.id)}
-                    className={`text-left p-3 rounded-md border transition-colors ${
-                      c.id === selectedCandidateId
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:bg-muted/50"
-                    }`}
+                    className={`text-left p-3 rounded-md border transition-colors ${c.id === selectedCandidateId
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:bg-muted/50"
+                      }`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">

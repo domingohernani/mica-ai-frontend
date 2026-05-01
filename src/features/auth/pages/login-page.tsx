@@ -1,6 +1,5 @@
 import { useAuth0 } from "@auth0/auth0-react";
-import axios from "axios";
-import { useEffect, useEffectEvent } from "react";
+import { useEffect } from "react";
 
 const LoginPage = () => {
   const { loginWithRedirect, isLoading, logout, isAuthenticated } = useAuth0();
