@@ -82,13 +82,13 @@ const NewJobPage = ({ onBack }: NewJobPageProps) => {
     location: "",
     employmentType: "",
     experienceLevel: "",
-    salaryMin: "",
-    salaryMax: "",
+    salaryMin: null as number | null,
+    salaryMax: null as number | null,
     assignedRecruiter: "",
     description: "",
     requirements: "",
     benefits: "",
-    openPositions: "",
+    openPositions: null as number | null,
     applicationDeadline: "",
   });
 
@@ -101,12 +101,15 @@ const NewJobPage = ({ onBack }: NewJobPageProps) => {
     >,
   ) => {
     const { name, value, type } = e.target;
+
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "number" ? (value === "" ? 0 : Number(value)) : value,
+      [name]:
+        type === "number"
+          ? (value === "" ? null : Number(value))
+          : value,
     }));
   };
-
   const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -136,6 +139,8 @@ const NewJobPage = ({ onBack }: NewJobPageProps) => {
       skills,
       createdBy: user?.id,
       organizationId: currentOrganizationId,
+      applicationDeadline:
+        formData.applicationDeadline || null,
     };
 
     try {
@@ -327,7 +332,7 @@ const NewJobPage = ({ onBack }: NewJobPageProps) => {
                   name="openPositions"
                   type="number"
                   min="1"
-                  value={formData.openPositions}
+                  value={formData.openPositions ?? ""}
                   onChange={handleInputChange}
                 />
               </div>
@@ -347,25 +352,25 @@ const NewJobPage = ({ onBack }: NewJobPageProps) => {
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="salaryMin">Minimum Salary (Annual)</Label>
+                <Label htmlFor="salaryMin">Minimum Salary (Monthly)</Label>
                 <Input
                   id="salaryMin"
                   name="salaryMin"
                   type="number"
                   placeholder="e.g., 80000"
-                  value={formData.salaryMin}
+                  value={formData.salaryMin ?? ""}
                   onChange={handleInputChange}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="salaryMax">Maximum Salary (Annual)</Label>
+                <Label htmlFor="salaryMax">Maximum Salary (Monthly)</Label>
                 <Input
                   id="salaryMax"
                   name="salaryMax"
                   type="number"
                   placeholder="e.g., 120000"
-                  value={formData.salaryMax}
+                  value={formData.salaryMax ?? ""}
                   onChange={handleInputChange}
                 />
               </div>
@@ -435,7 +440,7 @@ const NewJobPage = ({ onBack }: NewJobPageProps) => {
                   id="skills"
                   value={skillInput}
                   onChange={(e) => setSkillInput(e.target.value)}
-                  onKeyPress={handleKeyPress}
+                  onKeyDown={handleKeyPress}
                   placeholder="Type a skill and press Enter"
                 />
                 <Button type="button" onClick={addSkill} variant="secondary">
