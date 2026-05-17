@@ -64,7 +64,7 @@ const HiringJobPostingPage = () => {
     queryKey: ["jobs", currentOrganizationId],
     queryFn: async () => {
       if (!currentOrganizationId) return [];
-      const { data } = await api.get(`/jobs/${currentOrganizationId}`);
+      const { data } = await api.get(`/jobs/organization/${currentOrganizationId}`);
       return data;
     },
   });
