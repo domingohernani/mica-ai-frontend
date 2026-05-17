@@ -42,7 +42,7 @@ const mockJobDescription = {
 
 const InterviewPage = () => {
   const { isAuthenticated, getAccessTokenSilently } = useAuth0();
-  const [token, setToken] = useState();
+  const [token, setToken] = useState<string>();
 
   useEffect(() => {
     const fetchToken = async () => {
@@ -53,12 +53,7 @@ const InterviewPage = () => {
             scope: "openid profile email offline_access",
           },
         });
-        // Now you can send it to your backend
-        const { data } = await axios.post("http://localhost:3000/api/auth", {
-          token,
-        });
-        console.log(data.token);
-        setToken(data.token);
+        setToken(token);
       } catch (e) {
         console.error(e);
       }
@@ -109,7 +104,7 @@ const InterviewPage = () => {
 
       try {
         const { data } = await axios.post(
-          `http://localhost:3000/api/interviews/0869db3a-071e-47ec-a386-eea55c81daa9/questions/${question?.id}/chunk`,
+          `http://localhost:3000/api/interviews/43dba4f0-53e0-4605-b55e-ec83d391f8fe/questions/${question?.id}/chunk`,
           formData,
           {
             headers: {
@@ -168,7 +163,7 @@ const InterviewPage = () => {
         },
       });
       const { data } = await axios.get(
-        "http://localhost:3000/api/interviews/0869db3a-071e-47ec-a386-eea55c81daa9/questions",
+        "http://localhost:3000/api/interviews/43dba4f0-53e0-4605-b55e-ec83d391f8fe/questions",
         {
           headers: {
             Authorization: `Bearer ${token}`,
