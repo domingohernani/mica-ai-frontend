@@ -18,8 +18,6 @@ type AlertModalProps = {
     description: ReactNode;
     firstButtonText: ReactNode;
     secondButtonText?: ReactNode;
-    firstButtonFunc: unknown;
-    secondButtonFunc: unknown;
 };
 
 const AlertModal = ({
