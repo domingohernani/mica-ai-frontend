@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ApplyDialog } from "./components/job-apply";
+import { ApplyDialog } from "./components/apply-dialog";
 import { useAuth0, } from "@auth0/auth0-react";
 
 type Job = {
@@ -82,9 +82,17 @@ const JobPostingPage = () => {
         const formData = new FormData();
         formData.append("resume", file);
         formData.append("jobId", id ?? "");
-        await api.post("/applications", formData, {
-            headers: { "Content-Type": "multipart/form-data" },
-        });
+
+        console.log(Object.fromEntries(formData));
+
+        return;
+        try {
+            await api.post("/applications", formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     if (!job) {
