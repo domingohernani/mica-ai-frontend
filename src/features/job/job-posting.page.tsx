@@ -122,7 +122,7 @@ const JobPostingPage = () => {
                                     <BadgeCheck className="w-5 h-5 text-blue-500" />
                                     <span>is hiring</span>
                                 </p>
-                                <h1 className="text-4xl font-bold tracking-tight lg:text-5xl">
+                                <h1 className="text-4xl font-bold lg:text-5xl">
                                     {job.position}
                                 </h1>
                             </div>
@@ -132,27 +132,27 @@ const JobPostingPage = () => {
                         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
                             <InfoCard
                                 icon={<Briefcase className="w-4 h-4" />}
-                                label="TYPE"
+                                label="Type"
                                 value={job.employmentType}
                             />
                             <InfoCard
                                 icon={<Building2 className="w-4 h-4" />}
-                                label="DEPARTMENT"
+                                label="Department"
                                 value={job.department}
                             />
                             <InfoCard
                                 icon={<Coins className="w-4 h-4" />}
-                                label="SALARY"
+                                label="Salary"
                                 value={`${salary.format(job.salaryMin ?? 0)} - ${salary.format(job.salaryMax ?? 0)}`}
                             />
                             <InfoCard
                                 icon={<MapPin className="w-4 h-4" />}
-                                label="LOCATION"
+                                label="Location"
                                 value={job.location}
                             />
                             <InfoCard
                                 icon={<Clock3 className="w-4 h-4" />}
-                                label="POSTED"
+                                label="Posted"
                                 value={new Date(job.createdAt).toLocaleDateString()}
                             />
                         </div>
@@ -234,7 +234,7 @@ const JobPostingPage = () => {
                         {/* Job Details */}
                         <Card>
                             <CardHeader>
-                                <CardTitle className="text-sm font-semibold tracking-wide uppercase text-muted-foreground">
+                                <CardTitle className="text-sm font-semibold uppercase text-muted-foreground">
                                     Job Details
                                 </CardTitle>
                             </CardHeader>
@@ -289,7 +289,7 @@ type InfoCardProps = {
 
 const InfoCard = ({ label, value, icon }: InfoCardProps) => (
     <div className="flex flex-col gap-1">
-        <div className="flex items-center gap-1 text-xs font-semibold tracking-wide uppercase text-muted-foreground">
+        <div className="flex items-center gap-1 text-sm font-semibold text-muted-foreground">
             {icon}
             {label}
         </div>
@@ -322,7 +322,7 @@ const SidebarItem = ({
     <div className="flex items-start gap-3">
         <div className="mt-1 text-muted-foreground">{icon}</div>
         <div>
-            <p className="text-xs tracking-wide uppercase text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
                 {label}
             </p>
             <p className="font-medium">{value}</p>
