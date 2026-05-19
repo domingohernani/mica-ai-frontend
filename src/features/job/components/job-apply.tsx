@@ -33,7 +33,7 @@ export type ApplicantDetails = {
     currentJobTitle: string;
     currentCompany: string;
     yearsOfExperience: number;
-    expectedSalary: string;
+    expectedSalary: number;
     availability: "immediate" | "15_days" | "1_month" | "more_than_1_month";
     professionalLinks: string;
 };
@@ -94,9 +94,7 @@ const StepIndicator = ({ current }: { current: number }) => (
 
 const SectionHeader = ({ title, description }: { title: string; description?: string }) => (
     <div className="mb-3">
-        <p className="font-semibold">
-            {title}
-        </p>
+        <p className="font-semibold">{title}</p>
         {description && (
             <p className="mt-0.5 text-sm">{description}</p>
         )}
@@ -149,7 +147,7 @@ const defaultDetails = (email: string): ApplicantDetails => ({
     currentJobTitle: "",
     currentCompany: "",
     yearsOfExperience: 0,
-    expectedSalary: "",
+    expectedSalary: 0,
     availability: "immediate",
     professionalLinks: "",
 });
@@ -209,7 +207,7 @@ const DetailsStep = ({
         details.dateOfBirth &&
         details.phoneNumber.trim() &&
         details.currentAddress.trim() &&
-        details.expectedSalary.trim() &&
+        details.expectedSalary > 0 &&
         details.availability;
 
     return (
@@ -310,9 +308,42 @@ const DetailsStep = ({
                     description="Compensation and availability details."
                 />
                 <div className="flex flex-col gap-3">
-                    {field("expectedSalary", "Expected Salary", {
-                        placeholder: "e.g. PHP 60,000 / month",
-                    })}
+                    {/* Expected Salary — number only */}
+                    <div className="flex flex-col gap-1.5">
+                        <Label htmlFor="expectedSalary" className="text-sm font-medium">
+                            Expected Salary
+                        </Label>
+                        <Input
+                            id="expectedSalary"
+                            type="number"
+                            min={0}
+                            placeholder="e.g. 60000"
+                            value={details.expectedSalary === 0 ? "" : details.expectedSalary}
+                            onChange={(e) =>
+                                onChange({
+                                    expectedSalary: e.target.value === ""
+                                        ? 0
+                                        : Math.max(0, Number(e.target.value)),
+                                })
+                            }
+                            onKeyDown={(e) => {
+                                // Block non-numeric characters (allow: digits, backspace, delete,
+                                // tab, arrows, home/end, and the decimal point)
+                                const allowed = [
+                                    "Backspace", "Delete", "Tab", "ArrowLeft", "ArrowRight",
+                                    "ArrowUp", "ArrowDown", "Home", "End",
+                                ];
+                                if (
+                                    !allowed.includes(e.key) &&
+                                    !/^\d$/.test(e.key) &&
+                                    !(e.key === "." && !String(details.expectedSalary).includes("."))
+                                ) {
+                                    e.preventDefault();
+                                }
+                            }}
+                            className="text-sm h-9"
+                        />
+                    </div>
 
                     <div className="flex flex-col gap-1.5">
                         <Label htmlFor="availability" className="text-sm font-medium">
@@ -473,7 +504,12 @@ const ConfirmStep = ({
             label: "Experience",
             value: `${details.yearsOfExperience} yr${details.yearsOfExperience !== 1 ? "s" : ""}`,
         },
-        { label: "Expected Salary", value: details.expectedSalary },
+        {
+            label: "Expected Salary",
+            value: details.expectedSalary > 0
+                ? `PHP ${details.expectedSalary.toLocaleString()}`
+                : "—",
+        },
         { label: "Availability", value: availabilityLabel },
         {
             label: "Resume",
@@ -575,8 +611,11 @@ export const ApplyDialog = ({
         if (!file) return;
         setSubmitting(true);
         try {
+            console.log("Submitting application:", { file, details });
             await onSubmit(file, details);
             setStep(4);
+        } catch (error) {
+            console.error("Failed to submit application:", error);
         } finally {
             setSubmitting(false);
         }
