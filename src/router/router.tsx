@@ -22,8 +22,7 @@ import ProcessConfigPage from "@/features/process/pages/process-config.page";
 import InterviewPage from "@/features/interview/pages/interview.page";
 
 // Job Posting
-import JobPosting from "@/features/job/job-posting";
-
+import JobPostingPage from "@/features/job/job-posting.page";
 
 // Others
 import { createBrowserRouter, Navigate } from "react-router-dom";
@@ -54,7 +53,7 @@ const router = createBrowserRouter([
       },
       {
         path: "jobs/:slug/:id",
-        element: <JobPosting />,
+        element: <JobPostingPage />,
       },
       {
         path: "app",
