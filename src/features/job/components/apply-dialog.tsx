@@ -15,7 +15,6 @@ import ApplySignInStep from "./apply-signin-step";
 import ApplyDetailsStep from "./apply-details-step";
 import ApplyConfirmStep from "./apply-confirm-step";
 import ApplyAttachResumeStep from "./apply-attach-resume-step";
-import ApplySuccessScreen from "./apply-success-screen";
 
 const defaultDetails = (email: string): ApplicantDetails => ({
     firstName: "",
@@ -44,7 +43,7 @@ export const ApplyDialog = ({
     onSubmit,
 }: ApplyDialogProps) => {
     const [file, setFile] = useState<File | null>(null);
-    const [step, setStep] = useState<0 | 1 | 2 | 3 | 4>(isAuthenticated ? 1 : 0);
+    const [step, setStep] = useState<0 | 1 | 2 | 3>(isAuthenticated ? 1 : 0);
     const [submitting, setSubmitting] = useState(false);
     const [details, setDetails] = useState<ApplicantDetails>(
         defaultDetails(applicant?.email ?? "")
@@ -63,7 +62,7 @@ export const ApplyDialog = ({
         setSubmitting(true);
         try {
             await onSubmit(file, details);
-            setStep(4);
+            setStep(3);
         } catch (error) {
             console.error("Failed to submit application:", error);
         } finally {
@@ -85,13 +84,13 @@ export const ApplyDialog = ({
     };
 
     const handleBack = () => {
-        if (step > 0) setStep((prev) => (prev - 1) as 0 | 1 | 2 | 3 | 4);
+        if (step > 0) setStep((prev) => (prev - 1) as 0 | 1 | 2 | 3);
     };
 
     const minStep = isAuthenticated ? 1 : 0;
-    const canGoBack = step > minStep && step < 4;
+    const canGoBack = step > minStep && step < 3;
 
-    const indicatorStep = step === 4 ? 4 : step;
+    const indicatorStep = step === 3 ? 3 : step;
 
     return (
         <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -111,9 +110,9 @@ export const ApplyDialog = ({
                         )}
                         <div className="flex flex-col">
                             <DialogTitle>
-                                {step === 4 ? "Application Submitted" : "Apply for this Role"}
+                                {step === 3 ? "Submit Application" : "Apply for this Role"}
                             </DialogTitle>
-                            {step !== 4 && (
+                            {step !== 3 && (
                                 <DialogDescription>
                                     {companyName} · {jobTitle}
                                 </DialogDescription>
@@ -122,9 +121,9 @@ export const ApplyDialog = ({
                     </div>
                 </DialogHeader>
 
-                {step !== 4 && <ApplyStepIndicator current={indicatorStep} />}
+                {step !== 3 && <ApplyStepIndicator current={indicatorStep} />}
 
-                {isAuthenticated && step !== 4 && (
+                {isAuthenticated && step !== 3 && (
                     <div className="flex flex-col items-stretch justify-between gap-2 p-4 mb-1 border rounded-xl bg-muted/40">
                         <div className="flex flex-col">
                             <span className="text-sm text-muted-foreground">
@@ -174,13 +173,6 @@ export const ApplyDialog = ({
                         companyName={companyName}
                         onSubmit={handleSubmit}
                         submitting={submitting}
-                    />
-                )}
-                {step === 4 && (
-                    <ApplySuccessScreen
-                        jobTitle={jobTitle}
-                        companyName={companyName}
-                        onClose={() => handleOpenChange(false)}
                     />
                 )}
             </DialogContent>

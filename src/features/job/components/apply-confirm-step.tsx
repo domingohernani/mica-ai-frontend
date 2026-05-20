@@ -48,7 +48,7 @@ const ApplyConfirmStep = ({
         {
             label: "Resume",
             value: (
-                <Badge variant="secondary" className="max-w-[180px] truncate font-normal">
+                <Badge variant="secondary" className="max-w-full font-normal truncate">
                     {file?.name ?? "—"}
                 </Badge>
             ),
@@ -71,7 +71,7 @@ const ApplyConfirmStep = ({
                         className="flex items-center justify-between gap-3 px-3 py-2"
                     >
                         <span className="text-muted-foreground shrink-0">{label}</span>
-                        <span className="font-medium text-right truncate">{value}</span>
+                        <span className="w-full font-medium text-right truncate">{value}</span>
                     </div>
                 ))}
             </div>

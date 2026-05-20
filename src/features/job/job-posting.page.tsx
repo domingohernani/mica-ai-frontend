@@ -18,6 +18,8 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ApplyDialog } from "./components/apply-dialog";
 import { useAuth0, } from "@auth0/auth0-react";
+import type { ApplicantDetails } from "./types/applicant-details.type";
+import { toast } from "sonner";
 
 type Job = {
     id: string;
@@ -78,20 +80,25 @@ const JobPostingPage = () => {
         fetchJob();
     }, [id]);
 
-    const handleSubmitApplication = async (file: File) => {
+    const handleSubmitApplication = async (file: File, details: ApplicantDetails) => {
         const formData = new FormData();
         formData.append("resume", file);
-        formData.append("jobId", id ?? "");
-
-        console.log(Object.fromEntries(formData));
-
-        return;
+        formData.append("details", JSON.stringify(details));
         try {
-            await api.post("/applications", formData, {
+            await api.post(`/jobs/${id}/applications`, formData, {
                 headers: { "Content-Type": "multipart/form-data" },
+            });
+            toast.success("Application submitted successfully", {
+                description: `You have successfully applied for this position.`,
             });
         } catch (error) {
             console.error(error);
+            toast.error("Failed to submit application", {
+                description:
+                    "Something went wrong while submitting your application.",
+            });
+        } finally {
+            setApplyDialogOpen(false)
         }
     };
 
@@ -150,7 +157,7 @@ const JobPostingPage = () => {
                             />
                             <InfoCard
                                 icon={<Coins className="w-4 h-4" />}
-                                label="Salary"
+                                label="Salary (Monthly)"
                                 value={`${salary.format(job.salaryMin ?? 0)} - ${salary.format(job.salaryMax ?? 0)}`}
                             />
                             <InfoCard
