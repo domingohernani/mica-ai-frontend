@@ -196,15 +196,9 @@ const HiringScheduleInterviewPage = () => {
                     </CardContent>
                 </Card>
             )}
-
-            {/* ── BENTO GRID ── */}
-            <div className="grid grid-cols-12 gap-3">
-
-                {/* ── Row 1 ── */}
-
-                {/* Profile card — col 1-3 */}
+            <div className="grid grid-cols-12 gap-4">
                 <Card className="col-span-12 md:col-span-3">
-                    <CardContent className="flex flex-col items-center pt-6 text-center">
+                    <CardContent className="flex flex-col items-center text-center">
                         <Avatar className="w-14 h-14">
                             <AvatarImage alt={fullName} />
                             <AvatarFallback className="text-base font-semibold bg-primary/10 text-primary">
@@ -212,38 +206,34 @@ const HiringScheduleInterviewPage = () => {
                             </AvatarFallback>
                         </Avatar>
                         <h2 className="mt-3 text-sm font-semibold leading-tight">{fullName}</h2>
-                        <p className="text-xs text-muted-foreground mt-0.5">{applicant.currentJobTitle}</p>
+                        <p className="text-sm text-muted-foreground mt-0.5">{applicant.currentJobTitle}</p>
                         <div className="mt-2 flex flex-wrap justify-center gap-1.5">
-                            <Badge variant="secondary" className="text-xs">{applicant.status}</Badge>
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="secondary" className="text-sm">{applicant.status}</Badge>
+                            <Badge variant="outline" className="text-sm">
                                 Applied {DateTime.fromISO(applicant.appliedAt).toFormat("MMM d, yyyy")}
                             </Badge>
                         </div>
                     </CardContent>
                 </Card>
-
-                {/* Contact card — col 4-6 */}
                 <Card className="col-span-12 md:col-span-3">
-                    <CardHeader className="px-4 pt-4 pb-2">
-                        <CardTitle className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                    <CardHeader>
+                        <CardTitle>
                             Contact
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="px-4 pb-4">
+                    <CardContent>
                         <InfoRow icon={MailIcon} label="Email" value={applicant.email} />
                         <InfoRow icon={PhoneIcon} label="Phone" value={applicant.phoneNumber} />
                         <InfoRow icon={MapPinIcon} label="Address" value={applicant.currentAddress} />
                     </CardContent>
                 </Card>
-
-                {/* Professional card — col 7-12 */}
                 <Card className="col-span-12 md:col-span-6">
-                    <CardHeader className="px-4 pt-4 pb-2">
-                        <CardTitle className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                    <CardHeader>
+                        <CardTitle>
                             Professional Details
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="px-4 pb-4">
+                    <CardContent>
                         <div className="grid grid-cols-2 gap-x-4">
                             <InfoRow icon={BuildingIcon} label="Company" value={applicant.currentCompany} />
                             <InfoRow
@@ -281,13 +271,9 @@ const HiringScheduleInterviewPage = () => {
                         </div>
                     </CardContent>
                 </Card>
-
-                {/* ── Row 2 ── */}
-
-                {/* Calendar — col 1-5 */}
                 <Card className="col-span-12 md:col-span-5">
-                    <CardHeader className="px-4 pt-4 pb-2">
-                        <CardTitle className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                    <CardHeader>
+                        <CardTitle>
                             Interview Date
                         </CardTitle>
                     </CardHeader>
@@ -301,11 +287,9 @@ const HiringScheduleInterviewPage = () => {
                         />
                     </CardContent>
                 </Card>
-
-                {/* Time slots — col 6-9 */}
                 <Card className="col-span-12 md:col-span-4">
-                    <CardHeader className="px-4 pt-4 pb-2">
-                        <CardTitle className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                    <CardHeader>
+                        <CardTitle>
                             Start Time
                         </CardTitle>
                     </CardHeader>
@@ -316,7 +300,7 @@ const HiringScheduleInterviewPage = () => {
                                     key={slot}
                                     onClick={() => setSelectedTime(slot)}
                                     className={cn(
-                                        "text-xs px-1 py-2 rounded-md border transition-colors text-center",
+                                        "text-sm px-1 py-2 rounded-md border transition-colors text-center",
                                         selectedTime === slot
                                             ? "bg-primary text-primary-foreground border-primary"
                                             : "border-border text-muted-foreground hover:border-foreground hover:text-foreground bg-background"
@@ -328,11 +312,9 @@ const HiringScheduleInterviewPage = () => {
                         </div>
                     </CardContent>
                 </Card>
-
-                {/* Duration + Summary + Confirm — col 10-12 */}
                 <Card className="flex flex-col col-span-12 md:col-span-3">
-                    <CardHeader className="px-4 pt-4 pb-2">
-                        <CardTitle className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                    <CardHeader>
+                        <CardTitle>
                             Duration
                         </CardTitle>
                     </CardHeader>
@@ -345,7 +327,7 @@ const HiringScheduleInterviewPage = () => {
                                     key={d.value}
                                     onClick={() => setSelectedDuration(d.value)}
                                     className={cn(
-                                        "text-xs px-2 py-2 rounded-md border transition-colors text-center",
+                                        "text-sm px-2 py-2 rounded-md border transition-colors text-center",
                                         selectedDuration === d.value
                                             ? "bg-primary text-primary-foreground border-primary"
                                             : "border-border text-muted-foreground hover:border-foreground hover:text-foreground bg-background"
@@ -360,10 +342,10 @@ const HiringScheduleInterviewPage = () => {
 
                         {/* Summary */}
                         <div className={cn("space-y-1.5 flex-1 transition-opacity", canSchedule ? "opacity-100" : "opacity-40")}>
-                            <p className="mb-2 text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                            <p className="mb-2 text-sm font-semibold text-muted-foreground">
                                 Summary
                             </p>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <CalendarIcon className="w-3 h-3 text-primary shrink-0" />
                                 <span>
                                     {selectedDate
@@ -371,14 +353,14 @@ const HiringScheduleInterviewPage = () => {
                                         : "Pick a date"}
                                 </span>
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <ClockIcon className="w-3 h-3 text-primary shrink-0" />
                                 <span>
                                     {selectedTime || "Pick a time"}
                                     {selectedTime && ` · ${INTERVIEW_DURATIONS.find((d) => d.value === selectedDuration)?.label}`}
                                 </span>
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <SendIcon className="w-3 h-3 text-primary shrink-0" />
                                 <span className="truncate">→ {applicant.email}</span>
                             </div>
@@ -411,21 +393,20 @@ const HiringScheduleInterviewPage = () => {
                         {/* Info note */}
                         <div className="flex items-start gap-2 rounded-md bg-muted p-2.5">
                             <InfoIcon className="size-3.5 text-muted-foreground shrink-0 mt-0.5" />
-                            <p className="text-xs leading-relaxed text-muted-foreground">
+                            <p className="text-sm leading-relaxed text-muted-foreground">
                                 {applicant.firstName} receives a calendar invite and interview link via email once confirmed.
                             </p>
                         </div>
 
                         {scheduleMutation.isError && (
                             <Alert variant="destructive">
-                                <AlertDescription className="text-xs">
+                                <AlertDescription className="text-sm">
                                     Failed to schedule the interview. Please try again.
                                 </AlertDescription>
                             </Alert>
                         )}
                     </CardContent>
                 </Card>
-
             </div>
         </div>
     );
