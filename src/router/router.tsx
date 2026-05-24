@@ -10,6 +10,8 @@ import SignupPage from "@/features/auth/pages/signup-page";
 import HiringCandidatesPage from "@/features/hiring/pages/hiring-candidates.page";
 import HiringInterviewResultsPage from "@/features/hiring/pages/hiring-interview-results.page";
 import HiringJobPostingPage from "@/features/hiring/pages/hiring-job-postings.page";
+// Sub Pages
+import HiringScheduleInterviewPage from "@/features/hiring/pages/sub/hiring-schedule-interview.page";
 
 // Organization Routes
 import OnboardPage from "@/features/orgnanization/pages/onboard-page";
@@ -71,6 +73,12 @@ const router = createBrowserRouter([
               {
                 path: "candidates",
                 element: <HiringCandidatesPage />,
+                children: [
+                  {
+                    path: "jobs/:jobId/applications/:applicationId/schedules/new",
+                    element: <HiringScheduleInterviewPage />
+                  }
+                ]
               },
               {
                 path: "results",

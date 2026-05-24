@@ -33,6 +33,8 @@ import { api } from "@/utils/axios";
 import type { Application } from "../interfaces/application.interface";
 import APPLICATION_STATUS from "../constants/application-status.constant";
 import { formatDate } from "@/utils/date";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import SIDEBAR_ITEMS from "@/layout/constants/sidebar-items.constant";
 
 const sortOptions = [
   { value: "score-desc", label: "Highest Score" },
@@ -92,19 +94,19 @@ const HiringCandidatesPage = () => {
     (state) => state.currentOrganizationId,
   );
 
+  const navigate = useNavigate();
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPosition, setSelectedPosition] = useState("All Positions");
   const [positions, setPositions] = useState<string[]>([]);
   const [selectedStatus, setSelectedStatus] = useState("All Statuses");
   const [sortBy, setSortBy] = useState("score-desc");
 
-  const fetchCandidates = async () => {
+  const fetchApplicants = async () => {
     if (!currentOrganizationId) return [];
-
     const { data } = await api.get(
       `/organizations/${currentOrganizationId}/applications`,
     );
-
     if (Array.isArray(data)) {
       const position = data.map((item) => item.job.position);
       setPositions(position)
@@ -119,7 +121,7 @@ const HiringCandidatesPage = () => {
     error,
   } = useQuery({
     queryKey: ["applicants", currentOrganizationId],
-    queryFn: fetchCandidates,
+    queryFn: fetchApplicants,
   });
 
   const filteredAndSortedCandidates = applicants
@@ -155,10 +157,24 @@ const HiringCandidatesPage = () => {
       }
     });
 
+  const handleScheduleInterviewClick = (jobId: string, applicantId: string) => {
+    navigate(`jobs/${jobId}/applications/${applicantId}/schedules/new`)
+  }
+
   if (error) return <p>Something went wrong</p>;
+
+  const talentAcquisitionSidebar = SIDEBAR_ITEMS[0]?.items[0]?.href;
+
+  console.log(talentAcquisitionSidebar);
+  console.log(location.pathname);
+
+  if (talentAcquisitionSidebar !== location.pathname) {
+    return <Outlet />
+  }
 
   return (
     <>
+      <Outlet />
       {/* Header */}
       <section>
         <PageHeader
@@ -275,6 +291,8 @@ const HiringCandidatesPage = () => {
                 </TableRow>
               ) : (
                 filteredAndSortedCandidates.map((applicant: Application) => {
+                  const applicationId = applicant.id;
+                  const jobId = applicant.jobId
                   const fullName = `${applicant.firstName ?? ""} ${applicant.lastName ?? ""}`.trim();
                   const initials = `${applicant.firstName?.[0] ?? ""}${applicant.lastName?.[0] ?? ""}`;
                   const position = applicant.job?.position;
@@ -352,7 +370,7 @@ const HiringCandidatesPage = () => {
                               <Mail className="w-4 h-4 mr-2" />
                               Send Email
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleScheduleInterviewClick(jobId, applicationId)}>
                               <Phone className="w-4 h-4 mr-2" />
                               Schedule Interview
                             </DropdownMenuItem>

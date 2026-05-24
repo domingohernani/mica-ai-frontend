@@ -7,14 +7,9 @@ import { DateTime } from "luxon";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 import {
     CalendarIcon,
@@ -23,8 +18,7 @@ import {
     PhoneIcon,
     MapPinIcon,
     BriefcaseIcon,
-    DollarSignIcon,
-    InfoIcon,
+    PhilippinePeso,
     CheckCircle2Icon,
     UserIcon,
     SendIcon,
@@ -33,6 +27,7 @@ import {
     CalendarCheckIcon,
     BuildingIcon,
     ChevronLeft,
+    InfoIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import PageHeader from "@/components/layout/page-header";
@@ -75,10 +70,10 @@ const TIME_SLOTS = [
 ];
 
 const INTERVIEW_DURATIONS = [
-    { value: "30", label: "30 minutes" },
-    { value: "45", label: "45 minutes" },
-    { value: "60", label: "1 hour" },
-    { value: "90", label: "1.5 hours" },
+    { value: "30", label: "30 min" },
+    { value: "45", label: "45 min" },
+    { value: "60", label: "1 hr" },
+    { value: "90", label: "1.5 hr" },
 ];
 
 function InfoRow({
@@ -92,15 +87,9 @@ function InfoRow({
 }) {
     return (
         <div className="flex items-center gap-3 mb-2">
-            <div className="flex items-center justify-center rounded-md size-7 shrink-0">
-                <Icon className="size-3.5 text-muted-foreground" />
-            </div>
-            <div className="flex gap-2 items-base">
-                <p className="text-sm font-medium text-muted-foreground">
-                    {label}:
-                </p>
-                <p className="text-sm font-medium text-foreground">{value}</p>
-            </div>
+            <Icon className="size-3.5 text-muted-foreground shrink-0" />
+            <p className="text-sm text-muted-foreground shrink-0">{label}:</p>
+            <p className="text-sm font-medium truncate text-foreground">{value}</p>
         </div>
     );
 }
@@ -119,11 +108,7 @@ const HiringScheduleInterviewPage = () => {
         return data;
     };
 
-    const {
-        data: applicant,
-        isLoading,
-        error,
-    } = useQuery({
+    const { data: applicant, isLoading, error } = useQuery({
         queryKey: ["applicant", jobId, applicationId],
         queryFn: fetchApplicant,
     });
@@ -180,59 +165,30 @@ const HiringScheduleInterviewPage = () => {
     );
 
     return (
-        <>
+        <div className="space-y-4">
+
             {/* Page Header */}
             <section className="flex items-center justify-between">
                 <PageHeader
                     title="Schedule Interview"
                     subtitle={`Set the interview date and time for ${fullName}'s application.`}
                 />
-                <Button className="gap-2">
+                <Button variant="outline" className="gap-2">
                     <ChevronLeft className="w-4 h-4" />
                     Back
                 </Button>
             </section>
-            {/* Info cards row */}
-            <div className="flex gap-4 my-4">
-                <Card className="flex-1">
-                    <CardContent className="flex items-start gap-3">
-                        <InfoIcon className="size-4 shrink-0 text-muted-foreground" />
-                        <div>
-                            <p className="text-sm font-semibold">Schedule Information</p>
-                            <p className="text-sm text-muted-foreground">
-                                Once you set the interview schedule,{" "}
-                                <span className="font-medium text-foreground">{applicant.firstName}</span>{" "}
-                                will automatically receive an email with a link to take the interview at
-                                the scheduled date and time.
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card className="flex-1">
-                    <CardContent className="flex items-start gap-3">
-                        <FileTextIcon className="size-4 shrink-0 text-muted-foreground" />
-                        <div>
-                            <p className="text-sm font-semibold">Interview Questions</p>
-                            <p className="text-sm text-muted-foreground">
-                                {applicant.firstName} will be asked the screening questions you configured
-                                when creating this job post. You can review or edit those questions from
-                                the job post settings.
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
 
-            {/* Success state */}
+            {/* Success banner */}
             {scheduled && (
-                <Card>
-                    <CardContent className="flex items-start gap-3 pt-5 pb-5">
+                <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
+                    <CardContent className="flex items-start gap-3 py-4">
                         <CheckCircle2Icon className="mt-0.5 h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
                         <div>
-                            <p className="font-semibold">Interview Scheduled!</p>
-                            <p className="mt-0.5 text-sm text-muted-foreground">
+                            <p className="font-semibold text-green-800 dark:text-green-200">Interview Scheduled!</p>
+                            <p className="mt-0.5 text-sm text-green-700 dark:text-green-300">
                                 {applicant.firstName} will receive their interview link at{" "}
-                                <span className="font-medium text-foreground">{applicant.email}</span> on{" "}
+                                <span className="font-medium">{applicant.email}</span> on{" "}
                                 {selectedDate && DateTime.fromJSDate(selectedDate).toFormat("MMMM d, yyyy")}{" "}
                                 at {selectedTime}.
                             </p>
@@ -241,65 +197,63 @@ const HiringScheduleInterviewPage = () => {
                 </Card>
             )}
 
-            {/* Main content grid */}
-            <div className="grid gap-5 lg:grid-cols-3">
+            {/* ── BENTO GRID ── */}
+            <div className="grid grid-cols-12 gap-3">
 
-                <div className="space-y-4">
+                {/* ── Row 1 ── */}
 
-                    {/* Profile summary */}
-                    <Card>
-                        <CardContent>
-                            <div className="flex flex-col items-center text-center">
-                                <Avatar className="w-16 h-16">
-                                    <AvatarImage
-                                        // src={applicant.}
-                                        alt={fullName}
-                                    />
-                                    <AvatarFallback className="text-lg font-semibold bg-primary/10 text-primary">
-                                        {initials}
-                                    </AvatarFallback>
-                                </Avatar>
-                                <h2 className="mt-3 text-base font-semibold">{fullName}</h2>
-                                <p className="text-sm text-muted-foreground">{applicant.currentJobTitle}</p>
-                                <div className="mt-2 flex flex-wrap justify-center gap-1.5">
-                                    <Badge variant="secondary" className="text-xs">
-                                        {applicant.status}
-                                    </Badge>
-                                    <Badge variant="outline" className="text-xs">
-                                        Applied {DateTime.fromISO(applicant.appliedAt).toFormat("MMM d, yyyy")}
-                                    </Badge>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                {/* Profile card — col 1-3 */}
+                <Card className="col-span-12 md:col-span-3">
+                    <CardContent className="flex flex-col items-center pt-6 text-center">
+                        <Avatar className="w-14 h-14">
+                            <AvatarImage alt={fullName} />
+                            <AvatarFallback className="text-base font-semibold bg-primary/10 text-primary">
+                                {initials}
+                            </AvatarFallback>
+                        </Avatar>
+                        <h2 className="mt-3 text-sm font-semibold leading-tight">{fullName}</h2>
+                        <p className="text-xs text-muted-foreground mt-0.5">{applicant.currentJobTitle}</p>
+                        <div className="mt-2 flex flex-wrap justify-center gap-1.5">
+                            <Badge variant="secondary" className="text-xs">{applicant.status}</Badge>
+                            <Badge variant="outline" className="text-xs">
+                                Applied {DateTime.fromISO(applicant.appliedAt).toFormat("MMM d, yyyy")}
+                            </Badge>
+                        </div>
+                    </CardContent>
+                </Card>
 
-                    {/* Contact */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-sm font-semibold">Contact Information</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <InfoRow icon={MailIcon} label="Email" value={applicant.email} />
-                            <InfoRow icon={PhoneIcon} label="Phone" value={applicant.phoneNumber} />
-                            <InfoRow icon={MapPinIcon} label="Address" value={applicant.currentAddress} />
-                        </CardContent>
-                    </Card>
+                {/* Contact card — col 4-6 */}
+                <Card className="col-span-12 md:col-span-3">
+                    <CardHeader className="px-4 pt-4 pb-2">
+                        <CardTitle className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                            Contact
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="px-4 pb-4">
+                        <InfoRow icon={MailIcon} label="Email" value={applicant.email} />
+                        <InfoRow icon={PhoneIcon} label="Phone" value={applicant.phoneNumber} />
+                        <InfoRow icon={MapPinIcon} label="Address" value={applicant.currentAddress} />
+                    </CardContent>
+                </Card>
 
-                    {/* Professional */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-sm font-semibold">Professional Details</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <InfoRow icon={BuildingIcon} label="Current Company" value={applicant.currentCompany} />
+                {/* Professional card — col 7-12 */}
+                <Card className="col-span-12 md:col-span-6">
+                    <CardHeader className="px-4 pt-4 pb-2">
+                        <CardTitle className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                            Professional Details
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="px-4 pb-4">
+                        <div className="grid grid-cols-2 gap-x-4">
+                            <InfoRow icon={BuildingIcon} label="Company" value={applicant.currentCompany} />
                             <InfoRow
                                 icon={BriefcaseIcon}
                                 label="Experience"
                                 value={`${applicant.yearsOfExperience} ${applicant.yearsOfExperience === 1 ? "year" : "years"}`}
                             />
                             <InfoRow
-                                icon={DollarSignIcon}
-                                label="Expected Salary"
+                                icon={PhilippinePeso}
+                                label="Expected"
                                 value={`₱${applicant.expectedSalary.toLocaleString()}`}
                             />
                             <InfoRow
@@ -317,166 +271,163 @@ const HiringScheduleInterviewPage = () => {
                                             href={`/files/${applicant.resumePath}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="inline-flex items-center gap-1 text-primary underline-offset-4 hover:underline"
+                                            className="inline-flex items-center gap-1 text-sm text-primary underline-offset-4 hover:underline"
                                         >
-                                            View Resume
-                                            <LinkIcon className="w-3 h-3" />
+                                            View <LinkIcon className="w-3 h-3" />
                                         </a>
                                     }
                                 />
                             )}
-                        </CardContent>
-                    </Card>
-                </div>
+                        </div>
+                    </CardContent>
+                </Card>
 
-                <div className="lg:col-span-2">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2 text-base">
-                                <CalendarCheckIcon className="w-4 h-4 text-primary" />
-                                Set Interview Schedule
-                            </CardTitle>
-                            <CardDescription>
-                                Choose a date, time, and duration for {applicant.firstName}'s interview.
-                            </CardDescription>
-                        </CardHeader>
+                {/* ── Row 2 ── */}
 
-                        <CardContent className="space-y-2">
+                {/* Calendar — col 1-5 */}
+                <Card className="col-span-12 md:col-span-5">
+                    <CardHeader className="px-4 pt-4 pb-2">
+                        <CardTitle className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                            Interview Date
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex justify-center px-3 pb-3">
+                        <Calendar
+                            mode="single"
+                            selected={selectedDate}
+                            onSelect={setSelectedDate}
+                            disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                            className="w-full"
+                        />
+                    </CardContent>
+                </Card>
 
-                            {/* Date picker */}
-                            <div className="space-y-2">
-                                <Label className="text-sm font-medium">Interview Date</Label>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            className={cn(
-                                                "w-full justify-start text-left font-normal",
-                                                !selectedDate && "text-muted-foreground",
-                                            )}
-                                        >
-                                            <CalendarIcon className="w-4 h-4 mr-2" />
-                                            {selectedDate
-                                                ? DateTime.fromJSDate(selectedDate).toFormat("MMMM d, yyyy")
-                                                : "Pick a date"}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto" align="start">
-                                        <Calendar
-                                            mode="single"
-                                            selected={selectedDate}
-                                            onSelect={setSelectedDate}
-                                            disabled={(date) =>
-                                                date < new Date(new Date().setHours(0, 0, 0, 0))
-                                            }
-                                        />
-                                    </PopoverContent>
-                                </Popover>
+                {/* Time slots — col 6-9 */}
+                <Card className="col-span-12 md:col-span-4">
+                    <CardHeader className="px-4 pt-4 pb-2">
+                        <CardTitle className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                            Start Time
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="px-4 pb-4">
+                        <div className="grid grid-cols-4 gap-1.5">
+                            {TIME_SLOTS.map((slot) => (
+                                <button
+                                    key={slot}
+                                    onClick={() => setSelectedTime(slot)}
+                                    className={cn(
+                                        "text-xs px-1 py-2 rounded-md border transition-colors text-center",
+                                        selectedTime === slot
+                                            ? "bg-primary text-primary-foreground border-primary"
+                                            : "border-border text-muted-foreground hover:border-foreground hover:text-foreground bg-background"
+                                    )}
+                                >
+                                    {slot}
+                                </button>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Duration + Summary + Confirm — col 10-12 */}
+                <Card className="flex flex-col col-span-12 md:col-span-3">
+                    <CardHeader className="px-4 pt-4 pb-2">
+                        <CardTitle className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                            Duration
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex flex-col flex-1 gap-4 px-4 pb-4">
+
+                        {/* Duration pill buttons */}
+                        <div className="grid grid-cols-2 gap-1.5">
+                            {INTERVIEW_DURATIONS.map((d) => (
+                                <button
+                                    key={d.value}
+                                    onClick={() => setSelectedDuration(d.value)}
+                                    className={cn(
+                                        "text-xs px-2 py-2 rounded-md border transition-colors text-center",
+                                        selectedDuration === d.value
+                                            ? "bg-primary text-primary-foreground border-primary"
+                                            : "border-border text-muted-foreground hover:border-foreground hover:text-foreground bg-background"
+                                    )}
+                                >
+                                    {d.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="border-t" />
+
+                        {/* Summary */}
+                        <div className={cn("space-y-1.5 flex-1 transition-opacity", canSchedule ? "opacity-100" : "opacity-40")}>
+                            <p className="mb-2 text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                                Summary
+                            </p>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <CalendarIcon className="w-3 h-3 text-primary shrink-0" />
+                                <span>
+                                    {selectedDate
+                                        ? DateTime.fromJSDate(selectedDate).toFormat("MMM d, yyyy")
+                                        : "Pick a date"}
+                                </span>
                             </div>
-
-                            {/* Time + Duration */}
-                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                <div className="space-y-2">
-                                    <Label className="text-sm font-medium">Start Time</Label>
-                                    <Select value={selectedTime} onValueChange={setSelectedTime}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select time" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <ScrollArea className="h-[200px]">
-                                                {TIME_SLOTS.map((slot) => (
-                                                    <SelectItem key={slot} value={slot}>
-                                                        {slot}
-                                                    </SelectItem>
-                                                ))}
-                                            </ScrollArea>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div className="space-y-2 ">
-                                    <Label className="text-sm font-medium">Duration</Label>
-                                    <Select value={selectedDuration} onValueChange={setSelectedDuration}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select duration" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {INTERVIEW_DURATIONS.map((d) => (
-                                                <SelectItem key={d.value} value={d.value}>
-                                                    {d.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <ClockIcon className="w-3 h-3 text-primary shrink-0" />
+                                <span>
+                                    {selectedTime || "Pick a time"}
+                                    {selectedTime && ` · ${INTERVIEW_DURATIONS.find((d) => d.value === selectedDuration)?.label}`}
+                                </span>
                             </div>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <SendIcon className="w-3 h-3 text-primary shrink-0" />
+                                <span className="truncate">→ {applicant.email}</span>
+                            </div>
+                        </div>
 
-                            {/* Summary preview */}
-                            {canSchedule && (
-                                <div className="p-4 border border-dashed rounded-lg">
-                                    <p className="mb-2 text-xs font-semibold tracking-wider uppercase text-muted-foreground">
-                                        Summary
-                                    </p>
-                                    <div className="space-y-1.5 text-sm">
-                                        <div className="flex items-center gap-2">
-                                            <CalendarIcon className="h-3.5 w-3.5 text-primary" />
-                                            <span>
-                                                {DateTime.fromJSDate(selectedDate!).toFormat("EEEE, MMMM d, yyyy")}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <ClockIcon className="h-3.5 w-3.5 text-primary" />
-                                            <span>
-                                                {selectedTime} &bull;{" "}
-                                                {INTERVIEW_DURATIONS.find((d) => d.value === selectedDuration)?.label}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <SendIcon className="h-3.5 w-3.5 text-primary" />
-                                            <span>
-                                                Invite sent to{" "}
-                                                <span className="font-medium">{applicant.email}</span>
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
+                        {/* Confirm button */}
+                        <Button
+                            className="w-full"
+                            disabled={!canSchedule || scheduleMutation.isPending || scheduled}
+                            onClick={() => scheduleMutation.mutate()}
+                        >
+                            {scheduleMutation.isPending ? (
+                                <>
+                                    <div className="w-3.5 h-3.5 mr-2 border-2 rounded-full animate-spin border-primary-foreground border-t-transparent" />
+                                    Scheduling…
+                                </>
+                            ) : scheduled ? (
+                                <>
+                                    <CheckCircle2Icon className="w-3.5 h-3.5 mr-2" />
+                                    Scheduled
+                                </>
+                            ) : (
+                                <>
+                                    <CalendarCheckIcon className="w-3.5 h-3.5 mr-2" />
+                                    Confirm
+                                </>
                             )}
-                            <Button
-                                variant="default"
-                                className="w-full mt-4"
-                                disabled={!canSchedule || scheduleMutation.isPending || scheduled}
-                                onClick={() => scheduleMutation.mutate()}
-                            >
-                                {scheduleMutation.isPending ? (
-                                    <>
-                                        <div className="w-4 h-4 mr-2 border-2 rounded-full animate-spin border-primary-foreground border-t-transparent" />
-                                        Scheduling…
-                                    </>
-                                ) : scheduled ? (
-                                    <>
-                                        <CheckCircle2Icon className="w-4 h-4 mr-2" />
-                                        Interview Scheduled
-                                    </>
-                                ) : (
-                                    <>
-                                        <CalendarCheckIcon className="w-4 h-4 mr-2" />
-                                        Confirm
-                                    </>
-                                )}
-                            </Button>
+                        </Button>
 
-                            {scheduleMutation.isError && (
-                                <Alert variant="destructive">
-                                    <AlertDescription>
-                                        Failed to schedule the interview. Please try again.
-                                    </AlertDescription>
-                                </Alert>
-                            )}
-                        </CardContent>
-                    </Card>
-                </div>
+                        {/* Info note */}
+                        <div className="flex items-start gap-2 rounded-md bg-muted p-2.5">
+                            <InfoIcon className="size-3.5 text-muted-foreground shrink-0 mt-0.5" />
+                            <p className="text-xs leading-relaxed text-muted-foreground">
+                                {applicant.firstName} receives a calendar invite and interview link via email once confirmed.
+                            </p>
+                        </div>
+
+                        {scheduleMutation.isError && (
+                            <Alert variant="destructive">
+                                <AlertDescription className="text-xs">
+                                    Failed to schedule the interview. Please try again.
+                                </AlertDescription>
+                            </Alert>
+                        )}
+                    </CardContent>
+                </Card>
+
             </div>
-        </>
+        </div>
     );
 };
 
