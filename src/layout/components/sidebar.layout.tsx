@@ -20,7 +20,7 @@ const Sidebar = () => {
               </h4>
               <div className="space-y-1">
                 {group.items.map((item) => {
-                  const isActive = location.pathname === item.href;
+                  const isActive = location.pathname.includes(item.href)
                   return (
                     <Button
                       key={item.href}

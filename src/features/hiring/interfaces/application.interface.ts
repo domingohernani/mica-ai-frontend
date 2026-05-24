@@ -22,4 +22,5 @@ export interface Application {
   job?: {
     position: string;
   };
+  jobId: string;
 }
