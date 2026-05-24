@@ -157,17 +157,13 @@ const HiringCandidatesPage = () => {
       }
     });
 
-  const handleScheduleInterviewClick = (jobId: string, applicantId: string) => {
+  const handleScheduleInterviewClick = (jobId: string, applicantId: string | undefined) => {
     navigate(`jobs/${jobId}/applications/${applicantId}/schedules/new`)
   }
 
   if (error) return <p>Something went wrong</p>;
 
   const talentAcquisitionSidebar = SIDEBAR_ITEMS[0]?.items[0]?.href;
-
-  console.log(talentAcquisitionSidebar);
-  console.log(location.pathname);
-
   if (talentAcquisitionSidebar !== location.pathname) {
     return <Outlet />
   }
