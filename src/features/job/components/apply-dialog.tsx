@@ -8,15 +8,16 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
-import { type ApplicantDetails } from "../types/applicant-details.type"
+import { type Application } from "../../hiring/interfaces/application.interface"
 import { type ApplyDialogProps } from "../types/apply-dialog.prop"
 import ApplyStepIndicator from "./apply-step-indicator";
 import ApplySignInStep from "./apply-signin-step";
 import ApplyDetailsStep from "./apply-details-step";
 import ApplyConfirmStep from "./apply-confirm-step";
 import ApplyAttachResumeStep from "./apply-attach-resume-step";
+import { JobAvailability } from "../enum/job-availability";
 
-const defaultDetails = (email: string): ApplicantDetails => ({
+const defaultDetails = (email: string): Application => ({
     firstName: "",
     lastName: "",
     middleName: "",
@@ -28,7 +29,7 @@ const defaultDetails = (email: string): ApplicantDetails => ({
     currentCompany: "",
     yearsOfExperience: 0,
     expectedSalary: 0,
-    availability: "immediate",
+    availability: JobAvailability.IMMEDIATE,
     professionalLinks: "",
 });
 
@@ -45,11 +46,11 @@ export const ApplyDialog = ({
     const [file, setFile] = useState<File | null>(null);
     const [step, setStep] = useState<0 | 1 | 2 | 3>(isAuthenticated ? 1 : 0);
     const [submitting, setSubmitting] = useState(false);
-    const [details, setDetails] = useState<ApplicantDetails>(
+    const [details, setDetails] = useState<Application>(
         defaultDetails(applicant?.email ?? "")
     );
 
-    const patchDetails = (patch: Partial<ApplicantDetails>) =>
+    const patchDetails = (patch: Partial<Application>) =>
         setDetails((prev) => ({ ...prev, ...patch }));
 
     const handleAuth0Login = () => {

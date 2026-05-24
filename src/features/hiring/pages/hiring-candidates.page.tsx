@@ -24,86 +24,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Search, MoreVertical, Mail, Phone, FileText } from "lucide-react";
 import PageHeader from "@/components/layout/page-header";
-
-// Mock data - replace with your actual data fetching
-const mockCandidates = [
-  {
-    id: 1,
-    name: "Sarah Chen",
-    email: "sarah.chen@email.com",
-    phone: "+1 (555) 123-4567",
-    position: "Frontend Developer",
-    status: "Completed Interview",
-    score: 95,
-    appliedDate: "2024-01-15",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
-  },
-  {
-    id: 2,
-    name: "Marcus Johnson",
-    email: "marcus.j@email.com",
-    phone: "+1 (555) 234-5678",
-    position: "Frontend Developer",
-    status: "Completed Interview",
-    score: 92,
-    appliedDate: "2024-01-18",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Marcus",
-  },
-  {
-    id: 3,
-    name: "Emily Rodriguez",
-    email: "emily.r@email.com",
-    phone: "+1 (555) 345-6789",
-    position: "Backend Developer",
-    status: "In Review",
-    score: 88,
-    appliedDate: "2024-01-20",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Emily",
-  },
-  {
-    id: 4,
-    name: "David Kim",
-    email: "david.kim@email.com",
-    phone: "+1 (555) 456-7890",
-    position: "Frontend Developer",
-    status: "Scheduled",
-    score: 85,
-    appliedDate: "2024-01-22",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=David",
-  },
-  {
-    id: 5,
-    name: "Lisa Anderson",
-    email: "lisa.a@email.com",
-    phone: "+1 (555) 567-8901",
-    position: "Full Stack Developer",
-    status: "New Application",
-    score: null,
-    appliedDate: "2024-01-25",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Lisa",
-  },
-];
-
-const positions = [
-  "All Positions",
-  "Frontend Developer",
-  "Backend Developer",
-  "Full Stack Developer",
-  "DevOps Engineer",
-  "UI/UX Designer",
-];
-
-const statuses = [
-  "All Statuses",
-  "New Application",
-  "In Review",
-  "Scheduled",
-  "Completed Interview",
-  "Rejected",
-  "Hired",
-];
+import { useQuery } from "@tanstack/react-query";
+import { useStore } from "@/stores/use-store";
+import { api } from "@/utils/axios";
+import type { Application } from "../interfaces/application.interface";
+import APPLICATION_STATUS from "../constants/application-status.constant";
+import { formatDate } from "@/utils/date";
 
 const sortOptions = [
   { value: "score-desc", label: "Highest Score" },
@@ -126,50 +55,107 @@ const getStatusColor = (status: string) => {
   return colors[status] || "bg-gray-100 text-gray-800 hover:bg-gray-100";
 };
 
+const CandidateRowSkeleton = () => (
+  <TableRow>
+    <TableCell>
+      <div className="flex items-center gap-3">
+        <Skeleton className="w-10 h-10 rounded-full" />
+        <div className="space-y-1.5">
+          <Skeleton className="w-32 h-4" />
+          <Skeleton className="h-3 w-44" />
+        </div>
+      </div>
+    </TableCell>
+    <TableCell>
+      <div className="space-y-1.5">
+        <Skeleton className="h-4 w-36" />
+        <Skeleton className="h-3 w-28" />
+      </div>
+    </TableCell>
+    <TableCell>
+      <Skeleton className="h-6 rounded-full w-36" />
+    </TableCell>
+    <TableCell className="text-center">
+      <Skeleton className="w-12 h-12 mx-auto rounded-full" />
+    </TableCell>
+    <TableCell>
+      <Skeleton className="w-24 h-4" />
+    </TableCell>
+    <TableCell className="text-right">
+      <Skeleton className="w-8 h-8 ml-auto" />
+    </TableCell>
+  </TableRow>
+);
+
 const HiringCandidatesPage = () => {
+  const currentOrganizationId = useStore(
+    (state) => state.currentOrganizationId,
+  );
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPosition, setSelectedPosition] = useState("All Positions");
+  const [positions, setPositions] = useState<string[]>([]);
   const [selectedStatus, setSelectedStatus] = useState("All Statuses");
   const [sortBy, setSortBy] = useState("score-desc");
 
-  // Filter and sort logic
-  const filteredAndSortedCandidates = mockCandidates
-    .filter((candidate) => {
+  const fetchCandidates = async () => {
+    if (!currentOrganizationId) return [];
+
+    const { data } = await api.get(
+      `/organizations/${currentOrganizationId}/applications`,
+    );
+
+    if (Array.isArray(data)) {
+      const position = data.map((item) => item.job.position);
+      setPositions(position)
+    }
+
+    return data;
+  };
+
+  const {
+    data: applicants = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["applicants", currentOrganizationId],
+    queryFn: fetchCandidates,
+  });
+
+  const filteredAndSortedCandidates = applicants
+    .filter((applicant: Application) => {
+      const fullName = `${applicant.firstName ?? ""} ${applicant.lastName ?? ""}`;
       const matchesSearch =
-        candidate.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        candidate.email.toLowerCase().includes(searchQuery.toLowerCase());
+        fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (applicant.email ?? "").toLowerCase().includes(searchQuery.toLowerCase());
       const matchesPosition =
         selectedPosition === "All Positions" ||
-        candidate.position === selectedPosition;
+        (applicant.job?.position) === selectedPosition;
       const matchesStatus =
         selectedStatus === "All Statuses" ||
-        candidate.status === selectedStatus;
+        applicant.status === selectedStatus;
       return matchesSearch && matchesPosition && matchesStatus;
     })
-    .sort((a, b) => {
+    .sort((a: Application, b: Application) => {
       switch (sortBy) {
         case "score-desc":
           return (b.score || 0) - (a.score || 0);
         case "score-asc":
           return (a.score || 0) - (b.score || 0);
         case "date-desc":
-          return (
-            new Date(b.appliedDate).getTime() -
-            new Date(a.appliedDate).getTime()
-          );
+          return new Date(b.appliedAt!).getTime() - new Date(a.appliedAt!).getTime();
         case "date-asc":
-          return (
-            new Date(a.appliedDate).getTime() -
-            new Date(b.appliedDate).getTime()
-          );
+          return new Date(a.appliedAt!).getTime() - new Date(b.appliedAt!).getTime();
         case "name-asc":
-          return a.name.localeCompare(b.name);
+          return `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`);
         case "name-desc":
-          return b.name.localeCompare(a.name);
+          return `${b.firstName} ${b.lastName}`.localeCompare(`${a.firstName} ${a.lastName}`);
         default:
           return 0;
       }
     });
+
+  if (error) return <p>Something went wrong</p>;
 
   return (
     <>
@@ -201,8 +187,11 @@ const HiringCandidatesPage = () => {
               <SelectValue placeholder="Select position" />
             </SelectTrigger>
             <SelectContent>
-              {positions.map((position) => (
-                <SelectItem key={position} value={position}>
+              <SelectItem key={"all-position"} value="All Positions">
+                All Positions
+              </SelectItem>
+              {positions.map((position, key) => (
+                <SelectItem key={key} value={position}>
                   {position}
                 </SelectItem>
               ))}
@@ -215,7 +204,10 @@ const HiringCandidatesPage = () => {
               <SelectValue placeholder="Select status" />
             </SelectTrigger>
             <SelectContent>
-              {statuses.map((status) => (
+              <SelectItem key={"all_statuses"} value="All Statuses">
+                All Statuses
+              </SelectItem>
+              {APPLICATION_STATUS.map((status) => (
                 <SelectItem key={status} value={status}>
                   {status}
                 </SelectItem>
@@ -241,8 +233,13 @@ const HiringCandidatesPage = () => {
 
       {/* Results Count */}
       <div className="text-sm text-muted-foreground">
-        Showing {filteredAndSortedCandidates.length} of {mockCandidates.length}{" "}
-        candidates
+        {isLoading ? (
+          <Skeleton className="w-40 h-4" />
+        ) : (
+          <>
+            Showing {filteredAndSortedCandidates.length} of {applicants.length} candidates
+          </>
+        )}
       </div>
 
       {/* Table Container with horizontal scroll */}
@@ -250,7 +247,7 @@ const HiringCandidatesPage = () => {
         className="overflow-x-auto border bg-card"
         style={{ minWidth: "800px" }}
       >
-        <div className="min-w-[800px] ">
+        <div className="min-w-[800px]">
           <Table>
             <TableHeader>
               <TableRow>
@@ -263,7 +260,11 @@ const HiringCandidatesPage = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredAndSortedCandidates.length === 0 ? (
+              {isLoading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <CandidateRowSkeleton key={i} />
+                ))
+              ) : filteredAndSortedCandidates.length === 0 ? (
                 <TableRow>
                   <TableCell
                     colSpan={6}
@@ -273,98 +274,94 @@ const HiringCandidatesPage = () => {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredAndSortedCandidates.map((candidate) => (
-                  <TableRow
-                    key={candidate.id}
-                    className="cursor-pointer hover:bg-muted/50"
-                  >
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="w-10 h-10">
-                          <AvatarImage
-                            src={candidate.avatar}
-                            alt={candidate.name}
-                          />
-                          <AvatarFallback>
-                            {candidate.name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-medium">{candidate.name}</div>
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <Mail className="w-3 h-3" />
-                            {candidate.email}
+                filteredAndSortedCandidates.map((applicant: Application) => {
+                  const fullName = `${applicant.firstName ?? ""} ${applicant.lastName ?? ""}`.trim();
+                  const initials = `${applicant.firstName?.[0] ?? ""}${applicant.lastName?.[0] ?? ""}`;
+                  const position = applicant.job?.position;
+                  const phone = applicant.phoneNumber;
+                  const appliedDate = applicant.appliedAt;
+
+                  return (
+                    <TableRow
+                      key={applicant.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                    >
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar className="w-10 h-10">
+                            <AvatarImage
+                              src={applicant.avatar}
+                              alt={fullName}
+                            />
+                            <AvatarFallback>{initials}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-medium">{fullName}</div>
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                              <Mail className="w-3 h-3" />
+                              {applicant.email}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="font-medium">{candidate.position}</div>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <Phone className="w-3 h-3" />
-                        {candidate.phone}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="secondary"
-                        className={getStatusColor(candidate.status)}
-                      >
-                        {candidate.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {candidate.score !== null ? (
-                        <div className="inline-flex items-center justify-center w-12 h-12 font-bold rounded-full bg-primary/10 text-primary">
-                          {candidate.score}
+                      </TableCell>
+                      <TableCell>
+                        <div className="font-medium">{position}</div>
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <Phone className="w-3 h-3" />
+                          {phone}
                         </div>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {new Date(candidate.appliedDate).toLocaleDateString(
-                        "en-US",
-                        {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        },
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="w-8 h-8"
-                          >
-                            <MoreVertical className="w-4 h-4" />
-                            <span className="sr-only">Open menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
-                            <FileText className="w-4 h-4 mr-2" />
-                            View Profile
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Mail className="w-4 h-4 mr-2" />
-                            Send Email
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Phone className="w-4 h-4 mr-2" />
-                            Schedule Interview
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="secondary"
+                          className={getStatusColor(applicant.status)}
+                        >
+                          {applicant.status ?? "—"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {applicant.score ? (
+                          <div className="inline-flex items-center justify-center w-12 h-12 font-bold rounded-full bg-primary/10 text-primary">
+                            {applicant.score}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {appliedDate && formatDate(appliedDate)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="w-8 h-8"
+                            >
+                              <MoreVertical className="w-4 h-4" />
+                              <span className="sr-only">Open menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>
+                              <FileText className="w-4 h-4 mr-2" />
+                              View Profile
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Mail className="w-4 h-4 mr-2" />
+                              Send Email
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Phone className="w-4 h-4 mr-2" />
+                              Schedule Interview
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               )}
             </TableBody>
           </Table>

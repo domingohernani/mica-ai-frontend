@@ -1,8 +1,11 @@
-export type ApplicantDetails = {
+import type { JobAvailability } from "@/features/job/enum/job-availability";
+
+export interface Application {
+  id?: string;
   firstName: string;
   lastName: string;
   middleName: string | null;
-  dateOfBirth: string;
+  dateOfBirth: Date | string;
   email: string;
   phoneNumber: string;
   currentAddress: string;
@@ -10,6 +13,13 @@ export type ApplicantDetails = {
   currentCompany: string | null;
   yearsOfExperience: number;
   expectedSalary: number;
-  availability: "immediate" | "15_days" | "1_month" | "more_than_1_month";
+  availability: JobAvailability;
   professionalLinks: string | null;
-};
+  appliedAt?: Date;
+  updatedAt?: Date;
+  status?: string;
+
+  job?: {
+    position: string;
+  };
+}
