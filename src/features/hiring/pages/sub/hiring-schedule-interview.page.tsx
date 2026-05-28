@@ -113,24 +113,12 @@ const ScoreRing = ({ score }: { score: number }) => {
 };
 
 const GeminiEvaluationSection = ({ evaluation }: { evaluation: ApplicantEvaluation }) => {
-    const evalData = evaluation?.evaluation;
-
-    if (!evalData) {
-        return (
-            <div className="col-span-12 text-sm text-muted-foreground">
-                No evaluation available.
-            </div>
-        );
-    }
-
     const {
         alignmentRationale,
         compatibilityScore,
         matchedRequirements,
         missingCoreRequirements,
-    } = evalData;
-
-
+    } = evaluation;
     return (
         <div className="col-span-12 space-y-3">
             <div className="flex items-center gap-2">

@@ -1,12 +1,10 @@
 import type { JobAvailability } from "@/features/job/enum/job-availability";
 
 export interface ApplicantEvaluation {
-  evaluation: {
-    alignmentRationale: string;
-    compatibilityScore: number;
-    matchedRequirements: string[];
-    missingCoreRequirements: string[];
-  };
+  alignmentRationale: string;
+  compatibilityScore: number;
+  matchedRequirements: string[];
+  missingCoreRequirements: string[];
 }
 
 export interface Application {
