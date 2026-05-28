@@ -1,5 +1,5 @@
 import { api } from "@/utils/axios";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
     Briefcase,
@@ -16,7 +16,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import AlertModal from "@/components/modal/alert-modal";
+import { ApplyDialog } from "./components/apply-dialog";
+import { useAuth0, } from "@auth0/auth0-react";
+import type { ApplicantDetails } from "./types/applicant-details.type";
+import { toast } from "sonner";
 
 type Job = {
     id: string;
@@ -44,47 +47,59 @@ type Job = {
     organizationId: string;
 };
 
-const JobPosting = () => {
-    const { id } = useParams();
+const JobPostingPage = () => {
+    const { slug, id } = useParams();
     const [job, setJob] = useState<Job | null>(null);
+    const [applyDialogOpen, setApplyDialogOpen] = useState(false);
+    const { user, loginWithRedirect, isAuthenticated } = useAuth0();
 
-    // Resume upload when applying
-    const [file, setFile] = useState<File | null>(null);
-    const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-    // Dialog state
-    const [confirmSubmitDialogOpen, setConfirmSubmitDialogOpen] = useState(false);
+    const handleAuth0Login = async () => {
+        const currentUrl = `/jobs/${slug}/${id}`
+        loginWithRedirect({
+            authorizationParams: {
+                redirect_uri: import.meta.env["VITE_AUTH0_REDIRECT_URI"],
+                audience: import.meta.env["VITE_AUTH0_AUDIENCE"],
+                scope: "openid profile email offline_access",
+                prompt: "login",
+            },
+            appState: {
+                returnTo: currentUrl,
+            }
+        });
+    };
 
     useEffect(() => {
         const fetchJob = async () => {
             try {
                 const { data } = await api.get(`/jobs/${id}`);
-                console.log(data);
-
                 setJob(data);
             } catch (error) {
                 console.error(error);
             }
         };
-
         fetchJob();
     }, [id]);
 
-    const handleAttachButtonClick = () => {
-        fileInputRef.current?.click();
-    };
-
-    const handleFileChange = (
-        e: React.ChangeEvent<HTMLInputElement>
-    ) => {
-        const selectedFile = e.target.files?.[0];
-
-        if (!selectedFile) return;
-        setFile(selectedFile);
-    };
-
-    const handleSubmitButtonClick = () => {
-        setConfirmSubmitDialogOpen(true);
+    const handleSubmitApplication = async (file: File, details: ApplicantDetails) => {
+        const formData = new FormData();
+        formData.append("resume", file);
+        formData.append("details", JSON.stringify(details));
+        try {
+            await api.post(`/jobs/${id}/applications`, formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+            toast.success("Application submitted successfully", {
+                description: `You have successfully applied for this position.`,
+            });
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to submit application", {
+                description:
+                    "Something went wrong while submitting your application.",
+            });
+        } finally {
+            setApplyDialogOpen(false)
+        }
     };
 
     if (!job) {
@@ -122,7 +137,7 @@ const JobPosting = () => {
                                     <BadgeCheck className="w-5 h-5 text-blue-500" />
                                     <span>is hiring</span>
                                 </p>
-                                <h1 className="text-4xl font-bold tracking-tight lg:text-5xl">
+                                <h1 className="text-4xl font-bold lg:text-5xl">
                                     {job.position}
                                 </h1>
                             </div>
@@ -132,29 +147,27 @@ const JobPosting = () => {
                         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
                             <InfoCard
                                 icon={<Briefcase className="w-4 h-4" />}
-                                label="TYPE"
+                                label="Type"
                                 value={job.employmentType}
                             />
                             <InfoCard
                                 icon={<Building2 className="w-4 h-4" />}
-                                label="DEPARTMENT"
+                                label="Department"
                                 value={job.department}
                             />
                             <InfoCard
                                 icon={<Coins className="w-4 h-4" />}
-                                label="SALARY"
-                                value={`${salary.format(
-                                    job.salaryMin ?? 0
-                                )} - ${salary.format(job.salaryMax ?? 0)}`}
+                                label="Salary (Monthly)"
+                                value={`${salary.format(job.salaryMin ?? 0)} - ${salary.format(job.salaryMax ?? 0)}`}
                             />
                             <InfoCard
                                 icon={<MapPin className="w-4 h-4" />}
-                                label="LOCATION"
+                                label="Location"
                                 value={job.location}
                             />
                             <InfoCard
                                 icon={<Clock3 className="w-4 h-4" />}
-                                label="POSTED"
+                                label="Posted"
                                 value={new Date(job.createdAt).toLocaleDateString()}
                             />
                         </div>
@@ -179,14 +192,10 @@ const JobPosting = () => {
                 {/* Main Content */}
                 <main className="space-y-10 lg:col-span-8">
                     <Section title="Job Description">
-                        <p className="leading-8 text-muted-foreground">
-                            {job.description}
-                        </p>
+                        <p className="leading-8 text-muted-foreground">{job.description}</p>
                     </Section>
                     <Section title="Requirements">
-                        <p className="leading-8 text-muted-foreground">
-                            {job.requirements}
-                        </p>
+                        <p className="leading-8 text-muted-foreground">{job.requirements}</p>
                     </Section>
                     <Section title="Benefits & Perks">
                         <p className="leading-8 text-muted-foreground">
@@ -213,57 +222,38 @@ const JobPosting = () => {
                     <div className="sticky space-y-6 top-6">
                         {/* Apply Card */}
                         <Card>
-                            <CardContent className="pt-6 space-y-4">
+                            <CardContent className="space-y-4">
                                 <Button
-                                    onClick={handleAttachButtonClick}
+                                    onClick={() => setApplyDialogOpen(true)}
                                     className="w-full"
                                     size="lg"
                                 >
-                                    {file ? (
-                                        <span className="underline">Attached file: {file.name}</span>
-                                    ) : (
-                                        "Apply Now"
-                                    )}
+                                    Apply Now
                                 </Button>
-                                {file && (
-                                    <Button
-                                        onClick={handleSubmitButtonClick}
-                                        className="w-full"
-                                        size="lg"
-                                        variant="default"
-                                    >
-                                        Submit
-                                    </Button>
-                                )}
+
                                 <p className="text-sm text-muted-foreground">
                                     Join{" "}
                                     <span className="font-medium text-foreground">
                                         {job.organization.name}
                                     </span>{" "}
-                                    as a <span className="font-medium">{job.position}</span> by{" "}
-                                    <span className="text-foreground">attaching your resume</span>.
+                                    as a{" "}
+                                    <span className="font-medium">{job.position}</span> by attaching
+                                    your resume.
                                 </p>
                                 <p className="text-sm italic underline text-muted-foreground">
                                     Please upload your resume in PDF format only.
                                 </p>
-                                <input
-                                    ref={fileInputRef}
-                                    type="file"
-                                    accept=".pdf,application/pdf"
-                                    className="hidden"
-                                    onChange={handleFileChange}
-                                />
                             </CardContent>
                         </Card>
 
                         {/* Job Details */}
                         <Card>
-                            <CardHeader className="pb-4">
-                                <CardTitle className="text-sm font-semibold tracking-wide uppercase text-muted-foreground">
+                            <CardHeader>
+                                <CardTitle className="text-sm font-semibold uppercase text-muted-foreground">
                                     Job Details
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-5">
+                            <CardContent className="space-y-4">
                                 <SidebarItem
                                     icon={<Users className="w-5 h-5" />}
                                     label="Open Positions"
@@ -272,9 +262,7 @@ const JobPosting = () => {
                                 <SidebarItem
                                     icon={<Calendar className="w-5 h-5" />}
                                     label="Deadline"
-                                    value={new Date(
-                                        job.applicationDeadline
-                                    ).toLocaleDateString()}
+                                    value={new Date(job.applicationDeadline).toLocaleDateString()}
                                 />
                                 <SidebarItem
                                     icon={<Briefcase className="w-5 h-5" />}
@@ -291,21 +279,22 @@ const JobPosting = () => {
                     </div>
                 </aside>
             </div>
-            {/* Submit confirmation dialog */}
-            <AlertModal
-                key={"confimation-modal"}
-                isOpen={confirmSubmitDialogOpen}
-                onOpenChange={setConfirmSubmitDialogOpen}
-                title="Submit Application"
-                description={<>You're about to submit your application for <strong>{job.position}</strong> at <strong>{job.organization.name}</strong> with the attached resume <strong>{file?.name}</strong>. Are you sure you want to proceed?</>}
-                firstButtonText="Confirm"
-                secondButtonText="Cancel"
+
+            <ApplyDialog
+                open={applyDialogOpen}
+                onOpenChange={setApplyDialogOpen}
+                jobTitle={job.position}
+                companyName={job.organization.name}
+                onAuth0Login={handleAuth0Login}
+                applicant={user}
+                isAuthenticated={isAuthenticated}
+                onSubmit={handleSubmitApplication}
             />
         </section>
     );
 };
 
-export default JobPosting;
+export default JobPostingPage;
 
 type InfoCardProps = {
     label: string;
@@ -313,17 +302,15 @@ type InfoCardProps = {
     icon: React.ReactNode;
 };
 
-const InfoCard = ({ label, value, icon }: InfoCardProps) => {
-    return (
-        <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-1 text-xs font-semibold tracking-wide uppercase text-muted-foreground">
-                {icon}
-                {label}
-            </div>
-            <p className="text-base font-medium">{value}</p>
+const InfoCard = ({ label, value, icon }: InfoCardProps) => (
+    <div className="flex flex-col gap-1">
+        <div className="flex items-center gap-1 text-sm font-semibold text-muted-foreground">
+            {icon}
+            {label}
         </div>
-    );
-};
+        <p className="text-base font-medium">{value}</p>
+    </div>
+);
 
 const Section = ({
     title,
@@ -331,14 +318,12 @@ const Section = ({
 }: {
     title: string;
     children: React.ReactNode;
-}) => {
-    return (
-        <section>
-            <h2 className="mb-4 text-2xl font-bold">{title}</h2>
-            {children}
-        </section>
-    );
-};
+}) => (
+    <section>
+        <h2 className="mb-4 text-2xl font-bold">{title}</h2>
+        {children}
+    </section>
+);
 
 const SidebarItem = ({
     label,
@@ -348,16 +333,14 @@ const SidebarItem = ({
     label: string;
     value: string;
     icon: React.ReactNode;
-}) => {
-    return (
-        <div className="flex items-start gap-3">
-            <div className="mt-1 text-muted-foreground">{icon}</div>
-            <div>
-                <p className="text-xs tracking-wide uppercase text-muted-foreground">
-                    {label}
-                </p>
-                <p className="font-medium">{value}</p>
-            </div>
+}) => (
+    <div className="flex items-start gap-3">
+        <div className="mt-1 text-muted-foreground">{icon}</div>
+        <div>
+            <p className="text-sm text-muted-foreground">
+                {label}
+            </p>
+            <p className="font-medium">{value}</p>
         </div>
-    );
-};
+    </div>
+);

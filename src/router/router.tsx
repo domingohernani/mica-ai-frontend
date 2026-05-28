@@ -10,6 +10,8 @@ import SignupPage from "@/features/auth/pages/signup-page";
 import HiringCandidatesPage from "@/features/hiring/pages/hiring-candidates.page";
 import HiringInterviewResultsPage from "@/features/hiring/pages/hiring-interview-results.page";
 import HiringJobPostingPage from "@/features/hiring/pages/hiring-job-postings.page";
+// Sub Pages
+import HiringScheduleInterviewPage from "@/features/hiring/pages/sub/hiring-schedule-interview.page";
 
 // Organization Routes
 import OnboardPage from "@/features/orgnanization/pages/onboard-page";
@@ -22,8 +24,7 @@ import ProcessConfigPage from "@/features/process/pages/process-config.page";
 import InterviewPage from "@/features/interview/pages/interview.page";
 
 // Job Posting
-import JobPosting from "@/features/job/job-posting";
-
+import JobPostingPage from "@/features/job/job-posting.page";
 
 // Others
 import { createBrowserRouter, Navigate } from "react-router-dom";
@@ -54,7 +55,7 @@ const router = createBrowserRouter([
       },
       {
         path: "jobs/:slug/:id",
-        element: <JobPosting />,
+        element: <JobPostingPage />,
       },
       {
         path: "app",
@@ -72,6 +73,12 @@ const router = createBrowserRouter([
               {
                 path: "candidates",
                 element: <HiringCandidatesPage />,
+                children: [
+                  {
+                    path: "jobs/:jobId/applications/:applicationId/schedules/new",
+                    element: <HiringScheduleInterviewPage />
+                  }
+                ]
               },
               {
                 path: "results",

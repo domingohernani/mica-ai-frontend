@@ -215,7 +215,7 @@ const NewJobPage = ({ onBack }: NewJobPageProps) => {
                 </Label>
                 {departments.length === 0 ? (
                   <Alert>
-                    <Info className="h-4 w-4" />
+                    <Info className="w-4 h-4" />
                     <AlertDescription>
                       No departments found. Please add a department in Settings
                       first.
@@ -249,7 +249,7 @@ const NewJobPage = ({ onBack }: NewJobPageProps) => {
                 </Label>
                 {locations.length === 0 ? (
                   <Alert>
-                    <Info className="h-4 w-4" />
+                    <Info className="w-4 h-4" />
                     <AlertDescription>
                       No locations found. Please add a location in Settings
                       first.
@@ -352,7 +352,7 @@ const NewJobPage = ({ onBack }: NewJobPageProps) => {
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="salaryMin">Minimum Salary (Monthly)</Label>
+                <Label htmlFor="salaryMin">Minimum Salary in PHP (Monthly)</Label>
                 <Input
                   id="salaryMin"
                   name="salaryMin"
@@ -364,7 +364,7 @@ const NewJobPage = ({ onBack }: NewJobPageProps) => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="salaryMax">Maximum Salary (Monthly)</Label>
+                <Label htmlFor="salaryMax">Maximum Salary in PHP (Monthly)</Label>
                 <Input
                   id="salaryMax"
                   name="salaryMax"
@@ -494,7 +494,7 @@ const NewJobPage = ({ onBack }: NewJobPageProps) => {
                   value={formData.assignedRecruiter}
                   onChange={handleInputChange}
                   required
-                  className="flex h-9 w-full rounded-md border border-input bg-card px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex w-full px-3 py-2 text-sm transition-colors border rounded-md h-9 border-input bg-card focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <option value="">Select recruiter</option>
                   {recruiters.map((recruiter) => (
