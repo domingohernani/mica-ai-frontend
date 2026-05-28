@@ -1,5 +1,14 @@
 import type { JobAvailability } from "@/features/job/enum/job-availability";
 
+export interface ApplicantEvaluation {
+  evaluation: {
+    alignmentRationale: string;
+    compatibilityScore: number;
+    matchedRequirements: string[];
+    missingCoreRequirements: string[];
+  };
+}
+
 export interface Application {
   id?: string;
   firstName: string;
@@ -18,6 +27,7 @@ export interface Application {
   appliedAt?: Date;
   updatedAt?: Date;
   status?: string;
+  resumePath: string;
 
   job?: {
     position: string;
@@ -25,11 +35,6 @@ export interface Application {
   jobId: string;
 
   applicantEvaluation: {
-    evaluation: {
-      alignmentRationale: string;
-      compatibilityScore: number;
-      matchedRequirements: string[];
-      missingCoreRequirements: string[];
-    };
+    evaluation: ApplicantEvaluation;
   };
 }

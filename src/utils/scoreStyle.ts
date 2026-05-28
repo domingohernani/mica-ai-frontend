@@ -14,24 +14,38 @@ export const getScoreStyle = (score: number) => {
     return {
       textColor: "text-green-900",
       bgColor: "bg-green-200",
+      strokeColor: "#22c55e",
+      label: "Excellent match",
+      labelCls:
+        "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300",
     };
   } else if (score >= 65) {
     // Good Potential: Blue
     return {
       textColor: "text-blue-900",
       bgColor: "bg-blue-200",
+      strokeColor: "#3b82f6",
+      label: "Good match",
+      labelCls: "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
     };
   } else if (score >= 40) {
     // Partial Match: Yellow/Orange
     return {
       textColor: "text-yellow-900",
       bgColor: "bg-yellow-200",
+      strokeColor: "#f59e0b",
+      label: "Partial match",
+      labelCls:
+        "bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-300",
     };
   } else {
     // Low Alignment: Red
     return {
       textColor: "text-red-900",
       bgColor: "bg-red-200",
+      strokeColor: "#ef4444",
+      label: "Weak match",
+      labelCls: "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300",
     };
   }
 };
