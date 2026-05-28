@@ -282,7 +282,7 @@ const HiringCandidatesPage = () => {
                         <div className="flex items-center gap-2">
                           <span>Compatibility Score</span>
                           <div >
-                            <Gemini key={"gemini-logo"} size={18} />
+                            <Gemini key={"gemini-logo"} size={15} />
                           </div>
                           <TooltipContent
                             side="top"
