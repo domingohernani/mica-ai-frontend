@@ -19,4 +19,6 @@ export interface Job {
   skills?: string[];
   createdAt: string;
   updatedAt: string;
+  
+  applicationCount: number;
 }

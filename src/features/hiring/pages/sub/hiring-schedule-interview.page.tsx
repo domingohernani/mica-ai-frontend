@@ -23,11 +23,11 @@ import {
     FileTextIcon,
     CalendarCheckIcon,
     BuildingIcon,
-    ChevronLeft,
     InfoIcon,
     XCircleIcon,
     AlignLeftIcon,
     AlertTriangleIcon,
+    ArrowLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import PageHeader from "@/components/layout/page-header";
@@ -329,10 +329,15 @@ const HiringScheduleInterviewPage = () => {
                         </p>
                     </div>
                 </div>
-                <Button variant="outline" className="gap-2" onClick={handleBackBtn}>
-                    <ChevronLeft className="w-4 h-4" />
-                    Back
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleBackBtn}
+                    className="shrink-0"
+                >
+                    <ArrowLeft className="w-4 h-4" />
                 </Button>
+
             </div>
 
             <div className="grid grid-cols-12 gap-4">
