@@ -308,7 +308,8 @@ const HiringJobPostingPage = () => {
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 font-semibold rounded-full bg-primary/10 text-primary">
-                        <Users className="w-4 h-4" />—
+                        <Users className="w-4 h-4" />
+                        {job.applicationCount}
                       </div>
                     </TableCell>
                     <TableCell>
