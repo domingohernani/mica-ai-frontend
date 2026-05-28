@@ -23,4 +23,13 @@ export interface Application {
     position: string;
   };
   jobId: string;
+
+  applicantEvaluation: {
+    evaluation: {
+      alignmentRationale: string;
+      compatibilityScore: number;
+      matchedRequirements: string[];
+      missingCoreRequirements: string[];
+    };
+  };
 }
