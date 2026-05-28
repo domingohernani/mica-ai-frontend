@@ -17,13 +17,18 @@ import {
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { Skeleton } from "@/components/ui/skeleton";
 import { Search, MoreVertical, Mail, Phone, FileText } from "lucide-react";
 import PageHeader from "@/components/layout/page-header";
@@ -35,6 +40,8 @@ import APPLICATION_STATUS from "../constants/application-status.constant";
 import { formatDate } from "@/utils/date";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import SIDEBAR_ITEMS from "@/layout/constants/sidebar-items.constant";
+import { getScoreStyle } from "@/utils/scoreStyle";
+import Gemini from "@/assets/logos/gemini";
 
 const sortOptions = [
   { value: "score-desc", label: "Highest Score" },
@@ -139,11 +146,13 @@ const HiringCandidatesPage = () => {
       return matchesSearch && matchesPosition && matchesStatus;
     })
     .sort((a: Application, b: Application) => {
+      const compatibilityScoreA = a.applicantEvaluation.evaluation.compatibilityScore;
+      const compatibilityScoreB = a.applicantEvaluation.evaluation.compatibilityScore;
       switch (sortBy) {
         case "score-desc":
-          return (b.score || 0) - (a.score || 0);
+          return (compatibilityScoreB || 0) - (compatibilityScoreA || 0);
         case "score-asc":
-          return (a.score || 0) - (b.score || 0);
+          return (compatibilityScoreA || 0) - (compatibilityScoreB || 0);
         case "date-desc":
           return new Date(b.appliedAt!).getTime() - new Date(a.appliedAt!).getTime();
         case "date-asc":
@@ -265,8 +274,43 @@ const HiringCandidatesPage = () => {
               <TableRow>
                 <TableHead className="w-[250px]">Candidate</TableHead>
                 <TableHead className="w-[200px]">Position</TableHead>
-                <TableHead className="w-[180px]">Status</TableHead>
-                <TableHead className="w-[100px] text-center">Score</TableHead>
+                <TableHead className="w-[100px]">Status</TableHead>
+                <TableHead className="w-[100px] text-center">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild className="cursor-default">
+                        <div className="flex items-center gap-2">
+                          <span>Compatibility Score</span>
+                          <div >
+                            <Gemini key={"gemini-logo"} size={18} />
+                          </div>
+                          <TooltipContent
+                            side="top"
+                            className="w-[220px] p-0"
+                            sideOffset={8}
+                          >
+                            <div className="p-3.5">
+                              <div className="flex items-center gap-2 mb-2.5">
+                                <Gemini size={16} />
+                                <span className="text-[13px] font-medium">Scored by <span className="font-semibold">Gemini</span></span>
+                              </div>
+                              <p className="text-[12px] text-muted-foreground leading-relaxed mb-2.5">
+                                This score is intelligently analyzed by Gemini based on the uploaded
+                                resume — evaluating skills, experience, and role alignment.
+                              </p>
+                              <div className="flex items-center gap-1.5 bg-muted rounded-md px-2.5 py-2">
+                                <FileText size={13} className="text-muted-foreground" />
+                                <span className="text-[11px] text-muted-foreground">
+                                  Based on the uploaded resume
+                                </span>
+                              </div>
+                            </div>
+                          </TooltipContent>
+                        </div>
+                      </TooltipTrigger>
+                    </Tooltip>
+                  </TooltipProvider>
+                </TableHead>
                 <TableHead className="w-[120px]">Applied</TableHead>
                 <TableHead className="w-20 text-right">Actions</TableHead>
               </TableRow>
@@ -290,10 +334,11 @@ const HiringCandidatesPage = () => {
                   const applicationId = applicant.id;
                   const jobId = applicant.jobId
                   const fullName = `${applicant.firstName ?? ""} ${applicant.lastName ?? ""}`.trim();
-                  const initials = `${applicant.firstName?.[0] ?? ""}${applicant.lastName?.[0] ?? ""}`;
                   const position = applicant.job?.position;
                   const phone = applicant.phoneNumber;
                   const appliedDate = applicant.appliedAt;
+                  const compatibilityScore = applicant.applicantEvaluation.evaluation.compatibilityScore;
+                  const scoreStyle = getScoreStyle(compatibilityScore);
 
                   return (
                     <TableRow
@@ -302,13 +347,6 @@ const HiringCandidatesPage = () => {
                     >
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <Avatar className="w-10 h-10">
-                            <AvatarImage
-                              src={applicant.avatar}
-                              alt={fullName}
-                            />
-                            <AvatarFallback>{initials}</AvatarFallback>
-                          </Avatar>
                           <div>
                             <div className="font-medium">{fullName}</div>
                             <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -328,15 +366,15 @@ const HiringCandidatesPage = () => {
                       <TableCell>
                         <Badge
                           variant="secondary"
-                          className={getStatusColor(applicant.status)}
+                          className={getStatusColor(applicant.status || "")}
                         >
                           {applicant.status ?? "—"}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        {applicant.score ? (
-                          <div className="inline-flex items-center justify-center w-12 h-12 font-bold rounded-full bg-primary/10 text-primary">
-                            {applicant.score}
+                        {compatibilityScore ? (
+                          <div className={`inline-flex items-center justify-center w-12 h-12 font-bold rounded-full ${scoreStyle.textColor} ${scoreStyle.bgColor}`}>
+                            {compatibilityScore}
                           </div>
                         ) : (
                           <span className="text-muted-foreground">—</span>
@@ -380,7 +418,7 @@ const HiringCandidatesPage = () => {
             </TableBody>
           </Table>
         </div>
-      </div>
+      </div >
     </>
   );
 };
