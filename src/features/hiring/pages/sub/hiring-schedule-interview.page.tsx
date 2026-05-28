@@ -1,16 +1,13 @@
 import { api } from "@/utils/axios";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useState } from "react";
 import { DateTime } from "luxon";
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
 import {
     CalendarIcon,
     ClockIcon,
@@ -28,39 +25,17 @@ import {
     BuildingIcon,
     ChevronLeft,
     InfoIcon,
+    XCircleIcon,
+    AlignLeftIcon,
+    AlertTriangleIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import PageHeader from "@/components/layout/page-header";
-
-interface Applicant {
-    id: string;
-    firstName: string;
-    middleName: string;
-    lastName: string;
-    email: string;
-    phoneNumber: string;
-    dateOfBirth: string;
-    currentAddress: string;
-    currentCompany: string;
-    currentJobTitle: string;
-    expectedSalary: number;
-    yearsOfExperience: number;
-    availability: string;
-    status: string;
-    resumePath: string;
-    professionalLinks: string;
-    appliedAt: string;
-    updatedAt: string;
-    jobId: string;
-    organizationId: string;
-}
-
-const AVAILABILITY_LABELS: Record<string, string> = {
-    immediately: "Immediately",
-    within_2_weeks: "Within 2 Weeks",
-    within_1_month: "Within 1 Month",
-    more_than_1_month: "More than 1 Month",
-};
+import Gemini from "@/assets/logos/gemini";
+import AVAILABILITY_OPTIONS from "@/features/job/constants/availability-options.constant";
+import { getScoreStyle } from "@/utils/scoreStyle";
+import SIDEBAR_ITEMS from "@/layout/constants/sidebar-items.constant";
+import { type Application, type ApplicantEvaluation } from "../../interfaces/application.interface";
 
 const TIME_SLOTS = [
     "08:00 AM", "08:30 AM", "09:00 AM", "09:30 AM",
@@ -76,7 +51,7 @@ const INTERVIEW_DURATIONS = [
     { value: "90", label: "1.5 hr" },
 ];
 
-function InfoRow({
+const InfoRow = ({
     icon: Icon,
     label,
     value,
@@ -84,7 +59,7 @@ function InfoRow({
     icon: React.ElementType;
     label: string;
     value: React.ReactNode;
-}) {
+}) => {
     return (
         <div className="flex items-center gap-3 mb-2">
             <Icon className="size-3.5 text-muted-foreground shrink-0" />
@@ -94,15 +69,179 @@ function InfoRow({
     );
 }
 
+const ScoreRing = ({ score }: { score: number }) => {
+    const radius = 42;
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference - (score / 100) * circumference;
+    const { strokeColor, label, labelCls } = getScoreStyle(score);
+
+    return (
+        <div className="flex flex-col items-center gap-3 py-2">
+            <div className="relative w-24 h-24">
+                <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+                    <circle
+                        cx="50"
+                        cy="50"
+                        r={radius}
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="8"
+                        className="text-muted/20"
+                    />
+                    <circle
+                        cx="50"
+                        cy="50"
+                        r={radius}
+                        fill="none"
+                        stroke={strokeColor}
+                        strokeWidth="8"
+                        strokeDasharray={circumference}
+                        strokeDashoffset={offset}
+                        strokeLinecap="round"
+                    />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-2xl font-semibold leading-none">{score}</span>
+                    <span className="text-xs text-muted-foreground mt-0.5">/ 100</span>
+                </div>
+            </div>
+            <span className={cn("text-xs font-medium px-2.5 py-1 rounded-full", labelCls)}>
+                {label}
+            </span>
+        </div>
+    );
+};
+
+const GeminiEvaluationSection = ({ evaluation }: { evaluation: ApplicantEvaluation }) => {
+    const evalData = evaluation?.evaluation;
+
+    if (!evalData) {
+        return (
+            <div className="col-span-12 text-sm text-muted-foreground">
+                No evaluation available.
+            </div>
+        );
+    }
+
+    const {
+        alignmentRationale,
+        compatibilityScore,
+        matchedRequirements,
+        missingCoreRequirements,
+    } = evalData;
+
+
+    return (
+        <div className="col-span-12 space-y-3">
+            <div className="flex items-center gap-2">
+                <Gemini size={15} />
+                <h3 className="text-sm font-semibold text-foreground">Gemini Evaluation</h3>
+            </div>
+            <div className="grid grid-cols-12 gap-3">
+                <Card className="col-span-12 md:col-span-3">
+                    <CardHeader>
+                        <CardTitle>Compatibility Score</CardTitle>
+                        <CardDescription>Overall job fit rating</CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                        <ScoreRing score={compatibilityScore} />
+                    </CardContent>
+                </Card>
+
+                <Card className="col-span-12 md:col-span-9">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-1.5">
+                            <AlignLeftIcon className="size-3.5" />
+                            Alignment Rationale
+                        </CardTitle>
+                        <CardDescription>AI-generated assessment of candidate fit</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-sm leading-relaxed text-muted-foreground">
+                            {alignmentRationale}
+                        </p>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <div className="grid grid-cols-12 gap-3">
+                <Card className="col-span-12 md:col-span-7">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-1.5">
+                            <CheckCircle2Icon className="size-3.5" />
+                            Matched Requirements
+                        </CardTitle>
+                        <CardDescription>
+                            Requirements the candidate satisfies
+                            <Badge className="ml-2">
+                                {matchedRequirements.length}
+                            </Badge>
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ul className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
+                            {matchedRequirements.map((req, i) => (
+                                <li key={i} className="flex items-start gap-2.5 text-sm text-muted-foreground">
+                                    <span className="mt-[5px] w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                                    {req}
+                                </li>
+                            ))}
+                        </ul>
+                    </CardContent>
+                </Card>
+
+                <Card className="col-span-12 md:col-span-5">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-1.5">
+                            <XCircleIcon className="size-3.5" />
+                            Missing Requirements
+                        </CardTitle>
+                        <CardDescription>
+                            Core requirements not met
+                            <Badge
+                                className="ml-2 font-medium normal-case"
+                            >
+                                {missingCoreRequirements.length}
+                            </Badge>
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                        {missingCoreRequirements.length === 0 ? (
+                            <div className="flex items-center gap-2 text-sm rounded-md border px-3 py-2.5 text-muted-foreground">
+                                <CheckCircle2Icon className="size-4 shrink-0" />
+                                All core requirements matched.
+                            </div>
+                        ) : (
+                            <>
+                                <ul className="space-y-2">
+                                    {missingCoreRequirements.map((req, i) => (
+                                        <li
+                                            key={i}
+                                            className="flex items-center gap-2.5 text-sm font-medium text-destructive-foreground bg-destructive/10 border border-destructive/20 rounded-md px-3 py-2"
+                                        >
+                                            <AlertTriangleIcon className="size-3.5 shrink-0" />
+                                            {req}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
+    );
+};
+
 const HiringScheduleInterviewPage = () => {
     const { jobId, applicationId } = useParams();
+    const navigate = useNavigate();
 
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
     const [selectedTime, setSelectedTime] = useState<string>("");
     const [selectedDuration, setSelectedDuration] = useState<string>("60");
-    const [scheduled, setScheduled] = useState(false);
 
-    const fetchApplicant = async (): Promise<Applicant | null> => {
+    const fetchApplicant = async (): Promise<Application | null> => {
         if (!applicationId) return null;
         const { data } = await api.get(`/jobs/${jobId}/applications/${applicationId}`);
         return data;
@@ -125,7 +264,6 @@ const HiringScheduleInterviewPage = () => {
             );
             return data;
         },
-        onSuccess: () => setScheduled(true),
     });
 
     const canSchedule = selectedDate && selectedTime && selectedDuration;
@@ -155,71 +293,66 @@ const HiringScheduleInterviewPage = () => {
         .filter(Boolean)
         .join(" ");
 
-    const initials = [applicant.firstName?.[0], applicant.lastName?.[0]]
-        .filter(Boolean)
-        .join("")
-        .toUpperCase();
-
     const age = Math.floor(
-        Math.abs(DateTime.fromISO(applicant.dateOfBirth).diffNow("years").years)
+        Math.abs(
+            (
+                typeof applicant.dateOfBirth === "string"
+                    ? DateTime.fromISO(applicant.dateOfBirth)
+                    : DateTime.fromJSDate(applicant.dateOfBirth)
+            ).diffNow("years").years
+        )
     );
+
+    const appliedAt =
+        applicant.appliedAt
+            ? typeof applicant.appliedAt === "string"
+                ? DateTime.fromISO(applicant.appliedAt)
+                : DateTime.fromJSDate(applicant.appliedAt)
+            : null;
+
+    // Navigate to parent page
+    const handleBackBtn = () => {
+        const talentAcquisitionSection = SIDEBAR_ITEMS.find((sidebar) => sidebar.label === 'Talent Acquisition')
+        const candidatesPage = talentAcquisitionSection?.items.find((page) => page.title === 'Candidates')
+        if (!candidatesPage) return;
+        navigate(candidatesPage.href);
+    }
 
     return (
         <div className="space-y-4">
-
             {/* Page Header */}
-            <section className="flex items-center justify-between">
+            <section>
                 <PageHeader
                     title="Schedule Interview"
-                    subtitle={`Set the interview date and time for ${fullName}'s application.`}
+                    subtitle="Set the interview date and time for the selected applicant."
                 />
-                <Button variant="outline" className="gap-2">
+            </section>
+            {/* Candidate identity header */}
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <div>
+                        <div className="flex items-center gap-3 mb-1">
+                            <h1 className="text-3xl font-bold tracking-tight">{fullName}</h1>
+                            <Badge variant="secondary">{applicant.status}</Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                            {applicant.currentJobTitle} • Applied{" "}
+                            {appliedAt ? appliedAt.toFormat("MMMM d, yyyy") : "—"}
+                        </p>
+                    </div>
+                </div>
+                <Button variant="outline" className="gap-2" onClick={handleBackBtn}>
                     <ChevronLeft className="w-4 h-4" />
                     Back
                 </Button>
-            </section>
+            </div>
 
-            {/* Success banner */}
-            {scheduled && (
-                <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
-                    <CardContent className="flex items-start gap-3 py-4">
-                        <CheckCircle2Icon className="mt-0.5 h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
-                        <div>
-                            <p className="font-semibold text-green-800 dark:text-green-200">Interview Scheduled!</p>
-                            <p className="mt-0.5 text-sm text-green-700 dark:text-green-300">
-                                {applicant.firstName} will receive their interview link at{" "}
-                                <span className="font-medium">{applicant.email}</span> on{" "}
-                                {selectedDate && DateTime.fromJSDate(selectedDate).toFormat("MMMM d, yyyy")}{" "}
-                                at {selectedTime}.
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
             <div className="grid grid-cols-12 gap-4">
-                <Card className="col-span-12 md:col-span-3">
-                    <CardContent className="flex flex-col items-center text-center">
-                        <Avatar className="w-14 h-14">
-                            <AvatarImage alt={fullName} />
-                            <AvatarFallback className="text-base font-semibold bg-primary/10 text-primary">
-                                {initials}
-                            </AvatarFallback>
-                        </Avatar>
-                        <h2 className="mt-3 text-sm font-semibold leading-tight">{fullName}</h2>
-                        <p className="text-sm text-muted-foreground mt-0.5">{applicant.currentJobTitle}</p>
-                        <div className="mt-2 flex flex-wrap justify-center gap-1.5">
-                            <Badge variant="secondary" className="text-sm">{applicant.status}</Badge>
-                            <Badge variant="outline" className="text-sm">
-                                Applied {DateTime.fromISO(applicant.appliedAt).toFormat("MMM d, yyyy")}
-                            </Badge>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card className="col-span-12 md:col-span-3">
+                {/* Contact */}
+                <Card className="col-span-12 md:col-span-4">
                     <CardHeader>
-                        <CardTitle>
-                            Contact
-                        </CardTitle>
+                        <CardTitle>Contact</CardTitle>
+                        <CardDescription>How to reach this applicant</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <InfoRow icon={MailIcon} label="Email" value={applicant.email} />
@@ -227,11 +360,12 @@ const HiringScheduleInterviewPage = () => {
                         <InfoRow icon={MapPinIcon} label="Address" value={applicant.currentAddress} />
                     </CardContent>
                 </Card>
-                <Card className="col-span-12 md:col-span-6">
+
+                {/* Professional Details */}
+                <Card className="col-span-12 md:col-span-8">
                     <CardHeader>
-                        <CardTitle>
-                            Professional Details
-                        </CardTitle>
+                        <CardTitle>Professional Details</CardTitle>
+                        <CardDescription>Current role, experience, and expectations</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div className="grid grid-cols-2 gap-x-4">
@@ -249,7 +383,11 @@ const HiringScheduleInterviewPage = () => {
                             <InfoRow
                                 icon={ClockIcon}
                                 label="Availability"
-                                value={AVAILABILITY_LABELS[applicant.availability] ?? applicant.availability}
+                                value={
+                                    AVAILABILITY_OPTIONS.find(
+                                        (option) => option.value === applicant.availability
+                                    )?.label ?? applicant.availability
+                                }
                             />
                             <InfoRow icon={UserIcon} label="Age" value={`${age} years old`} />
                             {applicant.resumePath && (
@@ -271,11 +409,15 @@ const HiringScheduleInterviewPage = () => {
                         </div>
                     </CardContent>
                 </Card>
+                {/* Gemini AI Evaluation — only renders when data is present */}
+                {applicant.applicantEvaluation && (
+                    <GeminiEvaluationSection evaluation={applicant.applicantEvaluation.evaluation} />
+                )}
+                {/* Interview Date */}
                 <Card className="col-span-12 md:col-span-5">
                     <CardHeader>
-                        <CardTitle>
-                            Interview Date
-                        </CardTitle>
+                        <CardTitle>Interview Date</CardTitle>
+                        <CardDescription>Pick a date for the interview session</CardDescription>
                     </CardHeader>
                     <CardContent className="flex justify-center px-3 pb-3">
                         <Calendar
@@ -287,11 +429,12 @@ const HiringScheduleInterviewPage = () => {
                         />
                     </CardContent>
                 </Card>
+
+                {/* Start Time */}
                 <Card className="col-span-12 md:col-span-4">
                     <CardHeader>
-                        <CardTitle>
-                            Start Time
-                        </CardTitle>
+                        <CardTitle>Start Time</CardTitle>
+                        <CardDescription>Select a preferred time slot</CardDescription>
                     </CardHeader>
                     <CardContent className="px-4 pb-4">
                         <div className="grid grid-cols-4 gap-1.5">
@@ -312,14 +455,13 @@ const HiringScheduleInterviewPage = () => {
                         </div>
                     </CardContent>
                 </Card>
+                {/* Duration & Confirm */}
                 <Card className="flex flex-col col-span-12 md:col-span-3">
                     <CardHeader>
-                        <CardTitle>
-                            Duration
-                        </CardTitle>
+                        <CardTitle>Duration & Confirm</CardTitle>
+                        <CardDescription>Set the length and confirm the booking</CardDescription>
                     </CardHeader>
                     <CardContent className="flex flex-col flex-1 gap-4 px-4 pb-4">
-
                         {/* Duration pill buttons */}
                         <div className="grid grid-cols-2 gap-1.5">
                             {INTERVIEW_DURATIONS.map((d) => (
@@ -369,18 +511,13 @@ const HiringScheduleInterviewPage = () => {
                         {/* Confirm button */}
                         <Button
                             className="w-full"
-                            disabled={!canSchedule || scheduleMutation.isPending || scheduled}
+                            disabled={!canSchedule || scheduleMutation.isPending}
                             onClick={() => scheduleMutation.mutate()}
                         >
                             {scheduleMutation.isPending ? (
                                 <>
                                     <div className="w-3.5 h-3.5 mr-2 border-2 rounded-full animate-spin border-primary-foreground border-t-transparent" />
                                     Scheduling…
-                                </>
-                            ) : scheduled ? (
-                                <>
-                                    <CheckCircle2Icon className="w-3.5 h-3.5 mr-2" />
-                                    Scheduled
                                 </>
                             ) : (
                                 <>

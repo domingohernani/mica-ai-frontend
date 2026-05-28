@@ -1,9 +1,4 @@
-import type { ApplicantDetails } from "../types/applicant-details.type";
-
-const AVAILABILITY_OPTIONS: {
-  value: ApplicantDetails["availability"];
-  label: string;
-}[] = [
+const AVAILABILITY_OPTIONS = [
   { value: "immediate", label: "Immediately available" },
   { value: "15_days", label: "Within 15 days" },
   { value: "1_month", label: "Within 1 month" },
