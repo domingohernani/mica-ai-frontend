@@ -26,6 +26,7 @@ export interface Application {
   updatedAt?: Date;
   status?: string;
   resumePath: string;
+  resumeUrl?: string;
 
   job?: {
     position: string;
