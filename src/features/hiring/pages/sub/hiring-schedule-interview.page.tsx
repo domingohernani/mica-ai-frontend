@@ -509,12 +509,11 @@ const HiringScheduleInterviewPage = () => {
                         >
                             {scheduleMutation.isPending ? (
                                 <>
-                                    <div className="w-3.5 h-3.5 mr-2 border-2 rounded-full animate-spin border-primary-foreground border-t-transparent" />
+                                    <div className="w-3.5 h-3.5 mr-2 border-2 rounded-full animate-spin" />
                                     Scheduling…
                                 </>
                             ) : (
                                 <>
-                                    <CalendarCheckIcon className="w-3.5 h-3.5 mr-2" />
                                     Confirm
                                 </>
                             )}
@@ -524,7 +523,7 @@ const HiringScheduleInterviewPage = () => {
                         <div className="flex items-start gap-2 rounded-md bg-muted p-2.5">
                             <InfoIcon className="size-3.5 text-muted-foreground shrink-0 mt-0.5" />
                             <p className="text-sm leading-relaxed text-muted-foreground">
-                                {applicant.firstName} receives a calendar invite and interview link via email once confirmed.
+                                {applicant.firstName} receives a interview link via email once confirmed.
                             </p>
                         </div>
 
