@@ -23,13 +23,23 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, MoreVertical, Eye, Users, Calendar, Plus } from "lucide-react";
+import {
+  Search,
+  MoreVertical,
+  Eye,
+  Users,
+  Calendar,
+  Plus,
+  Link,
+  ClipboardList,
+} from "lucide-react";
 import PageHeader from "@/components/layout/page-header";
 import { type Job } from "../interfaces/job.interface";
 import NewJobPage from "./sub/new-job.page";
 import { useQuery } from "@tanstack/react-query";
 import { useStore } from "@/stores/use-store";
 import { api } from "@/utils/axios";
+import { toast } from "sonner";
 
 const statuses = ["All Statuses", "Open", "Paused", "Closed"];
 
@@ -64,7 +74,9 @@ const HiringJobPostingPage = () => {
     queryKey: ["jobs", currentOrganizationId],
     queryFn: async () => {
       if (!currentOrganizationId) return [];
-      const { data } = await api.get(`/jobs/organization/${currentOrganizationId}`);
+      const { data } = await api.get(
+        `/jobs/organization/${currentOrganizationId}`,
+      );
       return data;
     },
   });
@@ -124,6 +136,21 @@ const HiringJobPostingPage = () => {
           return 0;
       }
     });
+
+  const handleClickAction = (item: number, job: Job) => {
+    const url = import.meta.env["VITE_FRONTEND_URL"];
+    const jobUrl = `${url}/jobs/${job.position.replaceAll(" ", "-")}/${job.id}`;
+
+    switch (item) {
+      case 0: // Copy Link
+        navigator.clipboard.writeText(jobUrl);
+        toast.success("Link copied to clipboard!");
+        break;
+      case 1: // Navigate
+        window.open(jobUrl, "_blank", "noopener,noreferrer");
+        break;
+    }
+  };
 
   if (showNewJobForm) {
     return (
@@ -339,6 +366,18 @@ const HiringJobPostingPage = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => handleClickAction(0, job)}
+                          >
+                            <Link className="w-4 h-4 mr-2" />
+                            Copy Link
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleClickAction(1, job)}
+                          >
+                            <ClipboardList className="w-4 h-4 mr-2" />
+                            View Job Post
+                          </DropdownMenuItem>
                           <DropdownMenuItem>
                             <Eye className="w-4 h-4 mr-2" />
                             View Pipeline
