@@ -21,7 +21,6 @@ import {
     SendIcon,
     LinkIcon,
     FileTextIcon,
-    CalendarCheckIcon,
     BuildingIcon,
     InfoIcon,
     XCircleIcon,
