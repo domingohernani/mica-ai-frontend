@@ -397,10 +397,6 @@ const HiringCandidatesPage = () => {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem>
-                              <FileText className="w-4 h-4 mr-2" />
-                              View Profile
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
                               <Mail className="w-4 h-4 mr-2" />
                               Send Email
                             </DropdownMenuItem>
