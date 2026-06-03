@@ -13,13 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   CalendarIcon,
@@ -34,7 +27,6 @@ import {
   SendIcon,
   LinkIcon,
   FileTextIcon,
-  CalendarCheckIcon,
   BuildingIcon,
   InfoIcon,
   XCircleIcon,
@@ -580,26 +572,15 @@ const HiringScheduleInterviewPage = () => {
               )}
             </Button>
 
-                        {/* Info note */}
-                        <div className="flex items-start gap-2 rounded-md bg-muted p-2.5">
-                            <InfoIcon className="size-3.5 text-muted-foreground shrink-0 mt-0.5" />
-                            <p className="text-sm leading-relaxed text-muted-foreground">
-                                {applicant.firstName} receives a interview link via email once confirmed.
-                            </p>
-                        </div>
+            {/* Info note */}
+            <div className="flex items-start gap-2 rounded-md bg-muted p-2.5">
+              <InfoIcon className="size-3.5 text-muted-foreground shrink-0 mt-0.5" />
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                {applicant.firstName} receives an interview
+                link via email once confirmed.
+              </p>
+            </div>
 
-            {scheduleMutation.isError && (
-              <Alert variant="destructive">
-                <AlertDescription className="text-sm">
-                  Failed to schedule the interview. Please try again.
-                </AlertDescription>
-              </Alert>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
             {scheduleMutation.isError && (
               <Alert variant="destructive">
                 <AlertDescription className="text-sm">
