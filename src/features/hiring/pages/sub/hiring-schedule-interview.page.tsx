@@ -13,6 +13,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   CalendarIcon,
@@ -581,6 +588,18 @@ const HiringScheduleInterviewPage = () => {
                             </p>
                         </div>
 
+            {scheduleMutation.isError && (
+              <Alert variant="destructive">
+                <AlertDescription className="text-sm">
+                  Failed to schedule the interview. Please try again.
+                </AlertDescription>
+              </Alert>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
             {scheduleMutation.isError && (
               <Alert variant="destructive">
                 <AlertDescription className="text-sm">
